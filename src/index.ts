@@ -27,7 +27,7 @@ const favs = [
 	"kimetsu-no-yaiba-hashira-geiko-hen",
 	"sentai-daishikaku",
 	"girls-band-cry",
-  "dead-dead-demons-dededede-destruction"
+	"dead-dead-demons-dededede-destruction"
 ];
 
 async function getSchedule() {
@@ -50,11 +50,6 @@ async function sendNotification(photodata: TelPhotoReq, env: Env) {
 		},
 		body: JSON.stringify(photodata)
 	});
-
-	if (!response.ok) {
-		throw new Error("Telegram response not ok " + response?.statusText)
-	}
-
 	const telresp = (await response.json()) as TelbotResp;
 	if (telresp) {
 		if (!telresp.ok) {
@@ -90,7 +85,7 @@ async function processSchedule(env: Env) {
 
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
-				photo: `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}`,
+				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
 				caption: `*${item.title}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
 				parse_mode: 'Markdown',
 			};
@@ -105,28 +100,28 @@ async function processSchedule(env: Env) {
 }
 
 interface TodaySchedule {
-  title: string;
-  page: string;
-  image_url: string;
-  time: string;
-  aired: boolean;
+	title: string;
+	page: string;
+	image_url: string;
+	time: string;
+	aired: boolean;
 }
 
 // Type for the entire schedule response
 interface TodayScheduleResp {
-  tz: string;
-  schedule: TodaySchedule[];
+	tz: string;
+	schedule: TodaySchedule[];
 }
 
 interface TelPhotoReq {
-  chat_id: string;
-  photo: string;
-  caption: string;
-  parse_mode: string; 
+	chat_id: string;
+	photo: string;
+	caption: string;
+	parse_mode: string;
 }
 
 interface TelbotResp {
-  ok: boolean;
-  error_code: number;
-  description: string;
+	ok: boolean;
+	error_code: number;
+	description: string;
 }
