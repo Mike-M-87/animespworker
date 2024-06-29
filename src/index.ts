@@ -61,6 +61,10 @@ async function processSchedule(env: Env) {
 		const currentTime = new Date()
 		const currentDate = currentTime.toISOString().split('T')[0];
 
+		const previousTime = new Date(currentTime);
+		previousTime.setDate(previousTime.getDate() - 7);
+		const previousDate = previousTime.toISOString().split('T')[0];
+
 		for (const item of scheduleData.schedule) {
 			if (!favs.includes(item.page)) {
 				continue; // Skip non-favorite items
@@ -72,20 +76,23 @@ async function processSchedule(env: Env) {
 			}
 
 			const checkKey = `${item.page}-${currentDate}`;
-			const alreadySent = await env.SENT.get(checkKey);
-			if (alreadySent) {
+			const checkValue = await env.SENT.get(checkKey);
+			if (checkValue) {
 				continue; // Skip already sent items
 			}
+
+			const previousCheckKey = `${item.page}-${previousDate}`;
+			const previousCheckValue = await env.SENT.get(previousCheckKey);
 
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `*${item.title}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
+				caption: `*${item.title + (previousCheckValue ? (" - " + previousCheckValue) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
 				parse_mode: 'Markdown',
 			};
 
 			await sendNotification(newPhoto, env);
-			await env.SENT.put(checkKey, currentTime.toISOString());
+			await env.SENT.put(checkKey, previousCheckValue ? parseInt(previousCheckValue + 1).toString() : "0");
 		}
 		return null
 	} catch (error: any) {
