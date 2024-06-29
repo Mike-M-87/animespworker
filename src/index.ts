@@ -18,15 +18,9 @@ async function RunAction(env: Env) {
 
 
 const favs = [
-	"re-monster",
-	"wind-breaker",
 	"boku-no-hero-academia",
-	"kaijuu-8-gou",
-	"dragon-raja",
 	"mushoku-tensei-s2",
 	"kimetsu-no-yaiba-hashira-geiko-hen",
-	"sentai-daishikaku",
-	"girls-band-cry",
 	"dead-dead-demons-dededede-destruction"
 ];
 
