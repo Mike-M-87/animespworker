@@ -16,11 +16,8 @@ async function RunAction(env: Env) {
 	}
 }
 
-
 const favs = [
 	"boku-no-hero-academia",
-	"mushoku-tensei-s2",
-	"kimetsu-no-yaiba-hashira-geiko-hen",
 	"dead-dead-demons-dededede-destruction"
 ];
 
@@ -83,17 +80,16 @@ async function processSchedule(env: Env) {
 
 			const previousCheckKey = `${item.page}-${previousDate}`;
 			const previousCheckValue = await env.SENT.get(previousCheckKey);
-			const nextCheckValue = parseInt(previousCheckValue || "0") + 1
+			const previousCheckNumber = parseInt(previousCheckValue || "0")
 
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `*${item.title + (nextCheckValue ? (" - " + nextCheckValue.toString()) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
+				caption: `*${item.title + (previousCheckNumber ? (" - " + (previousCheckNumber + 1).toString().padStart(2, "0")) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
 				parse_mode: 'Markdown',
 			};
-
 			await sendNotification(newPhoto, env);
-			await env.SENT.put(checkKey, nextCheckValue.toString());
+			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1) : "").toString());
 		}
 		return null
 	} catch (error: any) {
