@@ -83,16 +83,17 @@ async function processSchedule(env: Env) {
 
 			const previousCheckKey = `${item.page}-${previousDate}`;
 			const previousCheckValue = await env.SENT.get(previousCheckKey);
+			const nextCheckValue = parseInt(previousCheckValue || "0") + 1
 
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `*${item.title + (previousCheckValue ? (" - " + previousCheckValue) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
+				caption: `*${item.title + (nextCheckValue ? (" - " + nextCheckValue) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
 				parse_mode: 'Markdown',
 			};
 
 			await sendNotification(newPhoto, env);
-			await env.SENT.put(checkKey, previousCheckValue ? parseInt(previousCheckValue + 1).toString() : "0");
+			await env.SENT.put(checkKey, nextCheckValue.toString());
 		}
 		return null
 	} catch (error: any) {
