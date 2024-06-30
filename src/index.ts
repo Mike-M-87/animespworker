@@ -88,7 +88,7 @@ async function processSchedule(env: Env) {
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `*${item.title + (nextCheckValue ? (" - " + nextCheckValue) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
+				caption: `*${item.title + (nextCheckValue ? (" - " + nextCheckValue.toString()) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
 				parse_mode: 'Markdown',
 			};
 
