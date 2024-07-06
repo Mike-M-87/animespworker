@@ -69,7 +69,7 @@ async function processSchedule(env: Env) {
 
 
 		for (const item of scheduleData.schedule) {
-			if (!favs.includes(item.page)) {
+			if (!favs.includes(item.page) || !item.aired) {
 				continue; // Skip non-favorite items
 			}
 
