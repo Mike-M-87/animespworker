@@ -4,4 +4,5 @@ interface Env {
   TELBOT_CHAT: any;
 	TELBOT_KEY: any
 	SENT: KVNamespace;
+	FAVS:KVNamespace
 }

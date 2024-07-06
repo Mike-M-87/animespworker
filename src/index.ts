@@ -16,11 +16,6 @@ async function RunAction(env: Env) {
 	}
 }
 
-const favs = [
-	"boku-no-hero-academia",
-	"dead-dead-demons-dededede-destruction"
-];
-
 async function getSchedule() {
 	const url = "https://subsplease.org/api?f=schedule&h=true&tz=Etc/GMT";
 
@@ -61,6 +56,17 @@ async function processSchedule(env: Env) {
 		const previousTime = new Date(currentTime);
 		previousTime.setDate(previousTime.getDate() - 7);
 		const previousDate = previousTime.toISOString().split('T')[0];
+
+		// fetch favs
+		let favkeys: any = [];
+		let cursor = null;
+		do {
+			const listResponse: any = await env.FAVS.list({ cursor });
+			favkeys = favkeys.concat(listResponse.keys);
+			cursor = listResponse.cursor;
+		} while (cursor);
+		const favs = favkeys.map((f: any) => f.name)
+
 
 		for (const item of scheduleData.schedule) {
 			if (!favs.includes(item.page)) {
