@@ -95,7 +95,7 @@ async function processSchedule(env: Env) {
 				parse_mode: 'Markdown',
 			};
 			await sendNotification(newPhoto, env);
-			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1) : currentTime.toISOString()).toString());
+			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1).toString() : currentTime.toUTCString()));
 		}
 		return null
 	} catch (error: any) {
