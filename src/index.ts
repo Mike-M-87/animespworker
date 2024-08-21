@@ -12,7 +12,17 @@ async function RunAction(env: Env) {
 	console.log("I ran");
 	const res = await processSchedule(env)
 	if (res) {
-		await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendMessage?chat_id=${env.TELBOT_CHAT}&text=❌❌❌ Error Getting Schedule: ${res}`)
+		await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendMessage`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				chat_id: env.TELBOT_CHAT,
+				text: `<blockquote expandable>❌❌❌ Error: ${res}</blockquote>`,
+				parse_mode: 'HTML',
+			})
+		});
 	}
 }
 
@@ -57,7 +67,6 @@ async function processSchedule(env: Env) {
 		previousTime.setDate(previousTime.getDate() - 7);
 		const previousDate = previousTime.toISOString().split('T')[0];
 
-		// fetch favs
 		let favkeys: any = [];
 		let cursor = null;
 		do {
@@ -70,7 +79,7 @@ async function processSchedule(env: Env) {
 
 		for (const item of scheduleData.schedule) {
 			if (!favs.includes(item.page) || !item.aired) {
-				continue; // Skip non-favorite items
+				continue;
 			}
 
 			const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
@@ -88,16 +97,17 @@ async function processSchedule(env: Env) {
 			const previousCheckValue = await env.SENT.get(previousCheckKey);
 			const previousCheckNumber = parseInt(previousCheckValue || "0")
 
+			const description = await env.FAVS.get(item.page)
+
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `*${item.title + (previousCheckNumber ? (" - " + (previousCheckNumber + 1).toString().padStart(2, "0")) : "")}*\n_Time:_ ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}\n_Aired:_ ${item.aired}\n_Page:_ [Subsplease Link](https://subsplease.org/shows/${item.page})\n\n`,
-				parse_mode: 'Markdown',
+				caption: `<blockquote><b>${item.title}</b></blockquote>\n─────────────────────\n${previousCheckNumber ? (`➥ <b><i>Episode: ${(previousCheckNumber + 1).toString().padStart(2, "0")}</i></b>`) : "➥ <b><i>Aired: true</i></b>"}\n➤ <b><i>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</i></b>\n➥ <b><i>Page:</i></b> <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a>\n─────────────────────\n<blockquote expandable>${description || ("Watch " + item.title)}</blockquote>`,
+				parse_mode: 'HTML',
 			};
 			await sendNotification(newPhoto, env);
 			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1).toString() : currentTime.toUTCString()));
 		}
-		return null
 	} catch (error: any) {
 		return error?.message || "Could not process schedule"
 	}
