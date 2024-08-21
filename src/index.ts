@@ -102,7 +102,7 @@ async function processSchedule(env: Env) {
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
 				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `<blockquote><b>${item.title}</b></blockquote>\n─────────────────────\n${previousCheckNumber ? (`➥ <b><i>Episode: ${(previousCheckNumber + 1).toString().padStart(2, "0")}</i></b>`) : "➥ <b><i>Aired: true</i></b>"}\n➤ <b><i>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</i></b>\n➥ <b><i>Page:</i></b> <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a>\n─────────────────────\n<blockquote expandable>${description || ("Watch " + item.title)}</blockquote>`,
+				caption: `<blockquote><b>${item.title}</b></blockquote>\n─────────────────────\n${previousCheckNumber ? (`➥ <b>Episode: ${(previousCheckNumber + 1).toString().padStart(2, "0")}</b>`) : "➥ <b>Aired: true</b>"}\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➥ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n─────────────────────\n<blockquote expandable><i>${description || ("Watch " + item.title)}</i></blockquote>`,
 				parse_mode: 'HTML',
 			};
 			await sendNotification(newPhoto, env);
