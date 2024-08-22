@@ -108,6 +108,7 @@ async function processSchedule(env: Env) {
 			await sendNotification(newPhoto, env);
 			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1).toString() : currentTime.toUTCString()));
 		}
+		return null
 	} catch (error: any) {
 		return error?.message || "Could not process schedule"
 	}
