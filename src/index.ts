@@ -128,7 +128,7 @@ async function processSchedule(env: Env) {
 			const newAnimeData = {
 				...animeData,
 				episode: previousEpisode + 1,
-				timestamp: currentTimestamp
+				timestamp: currentDate
 			}
 
 			await env.FAVS.put(item.page, JSON.stringify(newAnimeData));
