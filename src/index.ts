@@ -1,6 +1,11 @@
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		return new Response('Hello World!');
+		return new Response(null, {
+			status: 302,
+			headers: {
+				Location: 'https://t.me/jinwooanimes',
+			},
+		});
 	},
 	async scheduled(event, env, ctx): Promise<void> {
 		await RunAction(env)
@@ -59,26 +64,23 @@ async function sendNotification(photodata: TelPhotoReq, env: Env) {
 async function processSchedule(env: Env) {
 	try {
 		const scheduleData = await getSchedule();
-
 		const currentTime = new Date()
 		const currentDate = currentTime.toISOString().split('T')[0];
 
-		const previousTime = new Date(currentTime);
-		previousTime.setDate(previousTime.getDate() - 7);
-		const previousDate = previousTime.toISOString().split('T')[0];
 
-		let favkeys: any = [];
-		let cursor = null;
-		do {
-			const listResponse: any = await env.FAVS.list({ cursor });
-			favkeys = favkeys.concat(listResponse.keys);
-			cursor = listResponse.cursor;
-		} while (cursor);
-		const favs = favkeys.map((f: any) => f.name)
+		// let favkeys: any = [];
+		// let cursor = null;
+		// do {
+		// 	const listResponse: any = await env.FAVS.list({ cursor });
+		// 	favkeys = favkeys.concat(listResponse.keys);
+		// 	cursor = listResponse.cursor;
+		// } while (cursor);
+		// const favs = favkeys.map((f: any) => f.name)
 
 
 		for (const item of scheduleData.schedule) {
-			if (!favs.includes(item.page) || !item.aired) {
+			const checkValue = await env.FAVS.get(item.page);
+			if (!checkValue || !item.aired) {
 				continue;
 			}
 
@@ -87,26 +89,49 @@ async function processSchedule(env: Env) {
 				continue
 			}
 
-			const checkKey = `${item.page}-${currentDate}`;
-			const checkValue = await env.SENT.get(checkKey);
-			if (checkValue) {
+			let animeData: AnimePage | null = null;
+			try {
+				animeData = JSON.parse(checkValue);
+			} catch (error) {
+				animeData = null;
+			}
+
+			if (!animeData) {
+				animeData = {
+					season: 1,
+					episode: 0,
+					image_url: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
+					timestamp: "",
+					title: item.title,
+					summary: "Watch " + item.title
+				}
+			}
+
+			const currentTimestamp = `${item.page}-${currentDate}`;
+
+			if (animeData.timestamp == currentTimestamp) {
 				continue; // Skip already sent items
 			}
 
-			const previousCheckKey = `${item.page}-${previousDate}`;
-			const previousCheckValue = await env.SENT.get(previousCheckKey);
-			const previousCheckNumber = parseInt(previousCheckValue || "0")
-
-			const description = await env.FAVS.get(item.page)
+			const previousEpisode = animeData.episode;
+			const description = animeData.summary
 
 			const newPhoto = {
 				chat_id: env.TELBOT_CHAT,
-				photo: item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318",
-				caption: `<blockquote><b>${item.title}</b></blockquote>\n───────────────────\n${previousCheckNumber ? (`➤ <b>Episode: ${(previousCheckNumber + 1).toString().padStart(2, "0")}</b>`) : "➤ <b>Aired: true</b>"}\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${description || ("Watch " + item.title)}</i></blockquote>`,
+				photo: animeData.image_url,
+				caption: `<blockquote><b>${item.title}</b></blockquote>\n───────────────────\n➤ <b>Season: ${animeData.season.toString().padStart(2, "0")}</b>\n➤ <b>Episode: ${(previousEpisode + 1).toString().padStart(2, "0")}</b>\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${description}</i></blockquote>`,
 				parse_mode: 'HTML',
 			};
+
 			await sendNotification(newPhoto, env);
-			await env.SENT.put(checkKey, (previousCheckNumber ? (previousCheckNumber + 1).toString() : currentTime.toUTCString()));
+
+			const newAnimeData = {
+				...animeData,
+				episode: previousEpisode + 1,
+				timestamp: currentTimestamp
+			}
+
+			await env.FAVS.put(item.page, JSON.stringify(newAnimeData));
 		}
 		return null
 	} catch (error: any) {
@@ -114,6 +139,14 @@ async function processSchedule(env: Env) {
 	}
 }
 
+interface AnimePage {
+	title: string;
+	image_url: string;
+	season: number;
+	episode: number;
+	summary: string;
+	timestamp: string
+}
 interface TodaySchedule {
 	title: string;
 	page: string;
