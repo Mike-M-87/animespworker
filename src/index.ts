@@ -203,49 +203,50 @@ interface TelbotResp {
 
 function renderMessagePage(isError: boolean, messageContent: string): string {
 	return `
-	<!DOCTYPE html>
-	<html>
-	<head>
-	  <title>Success</title>
-	  <meta charset="UTF-8">
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <script src="https://cdn.tailwindcss.com"></script>
-	</head>
+<!DOCTYPE html>
+<html>
 
-	<style>
-	  .maincontainer {
-	    background-image: url("https://r4.wallpaperflare.com/wallpaper/683/96/3/solo-leveling-sung-jin-woo-manga-anime-boys-hd-wallpaper-333b13cd2dc9fbf52f06e2e7d83be858.jpg");
-	    background-position: center;
-	    background-repeat: no-repeat;
-	    background-size: cover;
-	  }
-	</style>
+<head>
+  <title>Success</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-	<body>
-	  <div class="maincontainer text-white flex h-svh w-svw bg-black flex-col justify-center items-center">
-	    <div
-	      class="w-full max-w-3xl p-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
+<style>
+  .maincontainer {
+    background-image: url("https://r4.wallpaperflare.com/wallpaper/683/96/3/solo-leveling-sung-jin-woo-manga-anime-boys-hd-wallpaper-333b13cd2dc9fbf52f06e2e7d83be858.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+</style>
 
-	      <div class="flex flex-col">
-	        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? "text-red-500" : "text-green-500"}">
-	          ${messageContent}
-					</h3>
-				</div>
+<body>
+  <div class="maincontainer text-white flex h-svh w-svw bg-black flex-col justify-center items-center">
+    <div
+      class="w-full max-w-3xl p-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
 
-				<a href="https://animespworker.micminn872837.workers.dev"
-					class="w-fit mx-auto mt-6 p-4 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black" > Go
-					Back
-				</a>
-			</div>
-  	</div>
-	</body>
-	</html>`;
+      <div class="flex flex-col">
+        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? "text-red-500" : "text-green-500" }">
+          ${messageContent}
+        </h3>
+      </div>
+
+      <a href="https://animespworker.micminn872837.workers.dev"
+        class="w-fit mx-auto mt-6 p-4 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black">
+        Go Back
+      </a>
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 
 function formPage(): string {
 	return `
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
