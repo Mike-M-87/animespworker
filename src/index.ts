@@ -107,9 +107,7 @@ async function processSchedule(env: Env) {
 				}
 			}
 
-			const currentTimestamp = `${item.page}-${currentDate}`;
-
-			if (animeData.timestamp == currentTimestamp) {
+			if (animeData.timestamp == currentDate) {
 				continue; // Skip already sent items
 			}
 
