@@ -315,7 +315,7 @@ function formPage(): string {
                   Title
                 </label>
               </div>
-              <input required type="text" name="title" placeholder="Demon Slayer" autocomplete="off"
+              <input maxlength="150" required type="text" name="title" placeholder="Demon Slayer" autocomplete="off"
                 class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
             </div>
           </div>
@@ -363,7 +363,7 @@ function formPage(): string {
                 </label>
               </div>
               <div class="flex items-center">
-                <textarea maxlength="700" required name="summary"
+                <textarea maxlength="500" required name="summary"
                   class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
               </div>
             </div>
