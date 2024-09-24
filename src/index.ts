@@ -1,208 +1,208 @@
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		if (request.method === 'POST') {
-			const formData = await request.formData();
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (request.method === 'POST') {
+      const formData = await request.formData();
 
-			const pagevalue = formData.get('page');
-			const page = typeof pagevalue === "string" ? pagevalue.split("https://subsplease.org/shows/")?.[1]?.replace(/\//g, '') : null;
-			const title = formData.get('title') as string;
-			const season = parseInt(formData.get('season') as string, 10); // Parse season as integer
-			const episode = parseInt(formData.get('episode') as string, 10); // Parse episode as integer
-			const summary = formData.get('summary') as string;
-			const image_url = formData.get('image_url') as string;
+      const pagevalue = formData.get('page');
+      const page = typeof pagevalue === "string" ? pagevalue.split("https://subsplease.org/shows/")?.[1]?.replace(/\//g, '') : null;
+      const title = formData.get('title') as string;
+      const season = parseInt(formData.get('season') as string, 10); // Parse season as integer
+      const episode = parseInt(formData.get('episode') as string, 10); // Parse episode as integer
+      const summary = formData.get('summary') as string;
+      const image_url = formData.get('image_url') as string;
 
-			try {
-				if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
-					const newAnime: AnimePage = {
-						title,
-						season,
-						episode,
-						summary,
-						timestamp: "",
-						image_url
-					}
-					await env.FAVS.put(page.toString(), JSON.stringify(newAnime));
-					return new Response(renderMessagePage(false, `"${title}" has been added to your FAVS.`), { headers: { 'Content-Type': 'text/html' } });
-				} else {
-					throw new Error('All fields are required and season/episode must be valid numbers.');
-				}
-			} catch (error: any) {
-				return new Response(renderMessagePage(true, 'Error adding anime to favourite: ' + error.message), { headers: { 'Content-Type': 'text/html' } });
-			}
-		}
-		return new Response(formPage(), { headers: { 'Content-Type': 'text/html' } });
-	},
-	async scheduled(event, env, ctx): Promise<void> {
-		await RunAction(env)
-	},
+      try {
+        if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
+          const newAnime: AnimePage = {
+            title,
+            season,
+            episode,
+            summary,
+            timestamp: "",
+            image_url
+          }
+          await env.FAVS.put(page.toString(), JSON.stringify(newAnime));
+          return new Response(renderMessagePage(false, `"${title}" has been added to your FAVS.`), { headers: { 'Content-Type': 'text/html' } });
+        } else {
+          throw new Error('All fields are required and season/episode must be valid numbers.');
+        }
+      } catch (error: any) {
+        return new Response(renderMessagePage(true, 'Error adding anime to favourite: ' + error.message), { headers: { 'Content-Type': 'text/html' } });
+      }
+    }
+    return new Response(formPage(), { headers: { 'Content-Type': 'text/html' } });
+  },
+  async scheduled(event, env, ctx): Promise<void> {
+    await RunAction(env)
+  },
 } satisfies ExportedHandler<Env>;
 
 
 async function RunAction(env: Env) {
-	console.log("I ran");
-	const res = await processSchedule(env)
-	if (res) {
-		await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendMessage`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				chat_id: env.TELBOT_CHAT,
-				text: `<blockquote expandable>❌❌❌ Error: ${res}</blockquote>`,
-				parse_mode: 'HTML',
-			})
-		});
-	}
+  console.log("I ran");
+  const res = await processSchedule(env)
+  if (res) {
+    await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        chat_id: env.TELBOT_CHAT,
+        text: `<blockquote expandable>❌❌❌ Error: ${res}</blockquote>`,
+        parse_mode: 'HTML',
+      })
+    });
+  }
 }
 
 async function getSchedule() {
-	const url = "https://subsplease.org/api?f=schedule&h=true&tz=Etc/GMT";
+  const url = "https://subsplease.org/api?f=schedule&h=true&tz=Etc/GMT";
 
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error("Subsplease response not ok " + response?.statusText)
-	}
-	const data = await response.json();
-	return data as TodayScheduleResp;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Subsplease response not ok " + response?.statusText)
+  }
+  const data = await response.json();
+  return data as TodayScheduleResp;
 }
 
 
 async function sendNotification(photodata: TelPhotoReq, env: Env) {
-	const response = await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendPhoto`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(photodata)
-	});
-	const telresp = (await response.json()) as TelbotResp;
-	if (telresp) {
-		if (!telresp.ok) {
-			throw new Error(`Telegram errorcode: ${telresp.error_code} -> ${telresp.description}`)
-		}
-	} else {
-		throw new Error("Empty telegram response")
-	}
+  const response = await fetch(`https://api.telegram.org/bot${env.TELBOT_KEY}/sendPhoto`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(photodata)
+  });
+  const telresp = (await response.json()) as TelbotResp;
+  if (telresp) {
+    if (!telresp.ok) {
+      throw new Error(`Telegram errorcode: ${telresp.error_code} -> ${telresp.description}`)
+    }
+  } else {
+    throw new Error("Empty telegram response")
+  }
 }
 
 async function processSchedule(env: Env) {
-	try {
-		const scheduleData = await getSchedule();
-		const currentTime = new Date()
-		const currentDate = currentTime.toISOString().split('T')[0];
+  try {
+    const scheduleData = await getSchedule();
+    const currentTime = new Date()
+    const currentDate = currentTime.toISOString().split('T')[0];
 
 
-		// let favkeys: any = [];
-		// let cursor = null;
-		// do {
-		// 	const listResponse: any = await env.FAVS.list({ cursor });
-		// 	favkeys = favkeys.concat(listResponse.keys);
-		// 	cursor = listResponse.cursor;
-		// } while (cursor);
-		// const favs = favkeys.map((f: any) => f.name)
+    // let favkeys: any = [];
+    // let cursor = null;
+    // do {
+    // 	const listResponse: any = await env.FAVS.list({ cursor });
+    // 	favkeys = favkeys.concat(listResponse.keys);
+    // 	cursor = listResponse.cursor;
+    // } while (cursor);
+    // const favs = favkeys.map((f: any) => f.name)
 
 
-		for (const item of scheduleData.schedule) {
-			const checkValue = await env.FAVS.get(item.page);
-			if (!checkValue || !item.aired) {
-				continue;
-			}
+    for (const item of scheduleData.schedule) {
+      const checkValue = await env.FAVS.get(item.page);
+      if (!checkValue || !item.aired) {
+        continue;
+      }
 
-			const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
-			if (timeObj > currentTime) {
-				continue
-			}
+      const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
+      if (timeObj > currentTime) {
+        continue
+      }
 
-			let animeData: AnimePage | null = null;
-			try {
-				animeData = JSON.parse(checkValue);
-			} catch (error) {
-				animeData = null;
-			}
+      let animeData: AnimePage | null = null;
+      try {
+        animeData = JSON.parse(checkValue);
+      } catch (error) {
+        animeData = null;
+      }
 
-			if (!animeData) {
-				animeData = {
-					season: 1,
-					episode: 0,
-					timestamp: "",
-					image_url: "",
-					title: item.title,
-					summary: "Watch " + item.title
-				}
-			}
+      if (!animeData) {
+        animeData = {
+          season: 1,
+          episode: 0,
+          timestamp: "",
+          image_url: "",
+          title: item.title,
+          summary: "Watch " + item.title
+        }
+      }
 
-			if (!animeData.image_url) {
-				animeData.image_url = item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318"
-			}
+      if (!animeData.image_url) {
+        animeData.image_url = item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318"
+      }
 
-			if (animeData.timestamp == currentDate) {
-				continue; // Skip already sent items
-			}
+      if (animeData.timestamp == currentDate) {
+        continue; // Skip already sent items
+      }
 
-			const previousEpisode = animeData.episode;
+      const previousEpisode = animeData.episode;
 
-			const newPhoto = {
-				chat_id: env.TELBOT_CHAT,
-				photo: animeData.image_url,
-				caption: `<blockquote><b>${item.title}</b></blockquote>\n───────────────────\n➤ <b>Season: ${animeData.season.toString().padStart(2, "0")}</b>\n➤ <b>Episode: ${(previousEpisode + 1).toString().padStart(2, "0")}</b>\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${animeData.summary}</i></blockquote>`,
-				parse_mode: 'HTML',
-			};
+      const newPhoto = {
+        chat_id: env.TELBOT_CHAT,
+        photo: animeData.image_url,
+        caption: `<blockquote><b>${animeData.title || item.title}</b></blockquote>\n───────────────────\n➤ <b>Season: ${animeData.season.toString().padStart(2, "0")}</b>\n➤ <b>Episode: ${(previousEpisode + 1).toString().padStart(2, "0")}</b>\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${animeData.summary}</i></blockquote>`,
+        parse_mode: 'HTML',
+      };
 
-			await sendNotification(newPhoto, env);
+      await sendNotification(newPhoto, env);
 
-			const newAnimeData = {
-				...animeData,
-				episode: previousEpisode + 1,
-				timestamp: currentDate
-			}
+      const newAnimeData = {
+        ...animeData,
+        episode: previousEpisode + 1,
+        timestamp: currentDate
+      }
 
-			await env.FAVS.put(item.page, JSON.stringify(newAnimeData));
-		}
-		return null
-	} catch (error: any) {
-		return error?.message || "Could not process schedule"
-	}
+      await env.FAVS.put(item.page, JSON.stringify(newAnimeData));
+    }
+    return null
+  } catch (error: any) {
+    return error?.message || "Could not process schedule"
+  }
 }
 
 interface AnimePage {
-	title: string;
-	image_url: string;
-	season: number;
-	episode: number;
-	summary: string;
-	timestamp: string
+  title: string;
+  image_url: string;
+  season: number;
+  episode: number;
+  summary: string;
+  timestamp: string
 }
 interface TodaySchedule {
-	title: string;
-	page: string;
-	image_url: string;
-	time: string;
-	aired: boolean;
+  title: string;
+  page: string;
+  image_url: string;
+  time: string;
+  aired: boolean;
 }
 
 // Type for the entire schedule response
 interface TodayScheduleResp {
-	tz: string;
-	schedule: TodaySchedule[];
+  tz: string;
+  schedule: TodaySchedule[];
 }
 
 interface TelPhotoReq {
-	chat_id: string;
-	photo: string;
-	caption: string;
-	parse_mode: string;
+  chat_id: string;
+  photo: string;
+  caption: string;
+  parse_mode: string;
 }
 
 interface TelbotResp {
-	ok: boolean;
-	error_code: number;
-	description: string;
+  ok: boolean;
+  error_code: number;
+  description: string;
 }
 
 
 function renderMessagePage(isError: boolean, messageContent: string): string {
-	return `
+  return `
 <!DOCTYPE html>
 <html>
 
@@ -228,7 +228,7 @@ function renderMessagePage(isError: boolean, messageContent: string): string {
       class="w-full max-w-3xl p-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
 
       <div class="flex flex-col">
-        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? "text-red-500" : "text-green-500" }">
+        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? "text-red-500" : "text-green-500"}">
           ${messageContent}
         </h3>
       </div>
@@ -245,7 +245,7 @@ function renderMessagePage(isError: boolean, messageContent: string): string {
 
 
 function formPage(): string {
-	return `
+  return `
 <!DOCTYPE html>
 <html>
 
