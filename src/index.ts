@@ -207,9 +207,35 @@ function renderMessagePage(isError: boolean, messageContent: string): string {
 <html>
 
 <head>
-  <title>Success</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>Jin Woo Worker</title>
+  <meta property="og:title" content="Jin Woo Worker" />
+
+  <meta name="description" content="Notifications update form for Jin Woo Animes telegram channel">
+  <meta property="og:description" content="Notifications update form for Jin Woo Animes telegram channel" />
+
+  <meta property="og:url" content="https://animespworker.micminn872837.workers.dev" />
+
+  <meta property="og:image" content="https://i.ibb.co/DrFbTBK/sl2-1.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="500" />
+  <meta property="og:image:height" content="500" />
+
+  <meta name="theme-color" content="#324784" />
+  <meta name="color-scheme" content="light dark" />
+
+  <link rel="apple-touch-icon" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
+  <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Jin Woo Worker" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="display" content="standalone">
+  <link rel="manifest" crossorigin="use-credentials"
+    href="https://gist.githubusercontent.com/Mike-M-87/c4bb8d50dd4c5181aebd69978d594fb4/raw/4fe12844f9f252e14a7eebe159bdf9222c45c9c7/manifest1.json" />
+
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -252,6 +278,33 @@ function formPage(): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>Jin Woo Worker</title>
+  <meta property="og:title" content="Jin Woo Worker" />
+
+  <meta name="description" content="Notifications update form for Jin Woo Animes telegram channel">
+  <meta property="og:description" content="Notifications update form for Jin Woo Animes telegram channel" />
+
+  <meta property="og:url" content="https://animespworker.micminn872837.workers.dev" />
+
+  <meta property="og:image" content="https://i.ibb.co/DrFbTBK/sl2-1.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="500" />
+  <meta property="og:image:height" content="500" />
+
+  <meta name="theme-color" content="#324784" />
+  <meta name="color-scheme" content="light dark" />
+
+  <link rel="apple-touch-icon" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
+  <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Jin Woo Worker" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="display" content="standalone">
+  <link rel="manifest" crossorigin="use-credentials"
+    href="https://gist.githubusercontent.com/Mike-M-87/c4bb8d50dd4c5181aebd69978d594fb4/raw/4fe12844f9f252e14a7eebe159bdf9222c45c9c7/manifest1.json" />
+
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -261,12 +314,13 @@ function formPage(): string {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+    color: #324784;
   }
 </style>
 
 <body>
   <div
-    class="maincontainer px-3 py-5 text-white flex min-h-svh h-full w-svw bg-black flex-col justify-center items-center">
+    class="maincontainer px-3 py-10 text-white flex min-h-svh h-full w-svw bg-black flex-col justify-center items-center">
 
     <div class="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
       <div>
@@ -279,18 +333,17 @@ function formPage(): string {
       Add Anime to Favourites
     </div>
 
-
     <div
-      class="w-full max-w-3xl mt-5 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
+      class="w-full max-w-3xl py-10 px-6 sm:px-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
 
-      <div class="flex flex-col p-10 pb-5">
+      <div class="flex flex-col">
         <h3 class="text-xl font-semibold leading-6 tracking-tighter">Receive notifications for this anime</h3>
         <p class="mt-1.5 text-sm font-medium text-white/50">Enter the anime details below.
         </p>
       </div>
 
 
-      <form method="post" class="p-10 pt-0 flex flex-col gap-4">
+      <form method="post" class="mt-10 flex flex-col gap-4">
         <div>
           <div>
             <div
@@ -363,7 +416,7 @@ function formPage(): string {
                 </label>
               </div>
               <div class="flex items-center">
-                <textarea maxlength="500" required name="summary"
+                <textarea maxlength="700" required name="summary"
                   class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
               </div>
             </div>
@@ -408,5 +461,6 @@ function formPage(): string {
 
   </div>
 </body>
+
 </html>`;
 }
