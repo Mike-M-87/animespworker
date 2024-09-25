@@ -292,7 +292,7 @@ function formPage(): string {
   <meta property="og:image:width" content="500" />
   <meta property="og:image:height" content="500" />
 
-  <meta name="theme-color" content="#324784" />
+  <meta name="theme-color" content="#1e1e1e" />
   <meta name="color-scheme" content="light dark" />
 
   <link rel="apple-touch-icon" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
@@ -314,7 +314,6 @@ function formPage(): string {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    color: #324784;
   }
 </style>
 
