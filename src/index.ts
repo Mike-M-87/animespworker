@@ -216,7 +216,8 @@ const templatePage = `
 
   <meta property="og:url" content="https://animespworker.micminn872837.workers.dev" />
 
-  <meta property="og:image" content="https://i.ibb.co/DrFbTBK/sl2-1.jpg" />
+ 
+  <meta property="og:image" content="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="500" />
   <meta property="og:image:height" content="500" />
@@ -224,8 +225,9 @@ const templatePage = `
   <meta name="theme-color" content="#1e1e1e" />
   <meta name="color-scheme" content="light dark" />
 
-  <link rel="apple-touch-icon" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
-  <link rel="shortcut icon" type="image/png" href="https://i.ibb.co/VSnjv9x/sl2-1.png" />
+  <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
+  <link rel="apple-touch-icon" href="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
+
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Jin Woo Worker" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
