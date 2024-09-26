@@ -222,7 +222,7 @@ const templatePage = `
   <meta property="og:image:width" content="500" />
   <meta property="og:image:height" content="500" />
 
-  <meta name="theme-color" content="#1e1e1e" />
+  <meta name="theme-color" content="#000" />
   <meta name="color-scheme" content="light dark" />
 
   <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
@@ -409,7 +409,7 @@ function formPage(): string {
     </div>
 
     <a href="https://t.me/jinwooanimes"
-      class="w-fit mx-auto mt-5 px-4 py-3 gap-2 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-full text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white border dark:border-white/70 border-white/70  shadow-[10px_5px_10px_10px] shadow-slate-500/10 dark:shadow-white/20">
+      class="w-fit mx-auto mt-5 px-4 py-3 gap-2 bg-opacity-60 backdrop-blur-md hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-full text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white border dark:border-white border-white  shadow-[5px_5px_5px_5px] shadow-slate-500/10 dark:shadow-white/20">
 
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" height="2em" fill="white">
         <path
