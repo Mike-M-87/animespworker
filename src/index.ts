@@ -254,7 +254,7 @@ const templatePage = `
   <meta name="theme-color" content="#000" />
   <meta name="color-scheme" content="light dark" />
 
-  <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/jS4R51CP/sl2-1.png" />
   <link rel="apple-touch-icon" href="https://i.postimg.cc/pd7gnj4H/sl2-1.jpg" />
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
