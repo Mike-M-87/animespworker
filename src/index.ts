@@ -2,9 +2,9 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === 'POST') {
       const formData = await request.formData();
+      const page = formData.get('page') as string;
+      console.log(page);
 
-      const pagevalue = formData.get('page');
-      const page = typeof pagevalue === "string" ? pagevalue.split("https://subsplease.org/shows/")?.[1]?.replace(/\//g, '') : null;
       const title = formData.get('title') as string;
       const season = parseInt(formData.get('season') as string, 10); // Parse season as integer
       const episode = parseInt(formData.get('episode') as string, 10); // Parse episode as integer
@@ -30,7 +30,12 @@ export default {
         return new Response(renderMessagePage(true, 'Error adding anime to favourite: ' + error.message), { headers: { 'Content-Type': 'text/html' } });
       }
     }
-    return new Response(formPage(), { headers: { 'Content-Type': 'text/html' } });
+
+    const subspleaseResponse = await fetch('https://subsplease.org/api/?f=schedule&tz=Africa/Nairobi');
+    const subspleaseData = (await subspleaseResponse.json()) as ScheduleResp;
+    const options = parseScheduleOptions(subspleaseData.schedule as WeekSchedule);
+
+    return new Response(formPage(options), { headers: { 'Content-Type': 'text/html' } });
   },
   async scheduled(event, env, ctx): Promise<void> {
     await RunAction(env)
@@ -64,7 +69,7 @@ async function getSchedule() {
     throw new Error("Subsplease response not ok " + response?.statusText)
   }
   const data = await response.json();
-  return data as TodayScheduleResp;
+  return data as ScheduleResp;
 }
 
 
@@ -102,9 +107,9 @@ async function processSchedule(env: Env) {
     // } while (cursor);
     // const favs = favkeys.map((f: any) => f.name)
 
-
-    for (const item of scheduleData.schedule) {
-      const checkValue = await env.FAVS.get(item.page);
+    const daySchedule = scheduleData?.schedule as TodaySchedule[]
+    for (const item of daySchedule) {
+      const checkValue = await env.FAVS.get(item?.page);
       if (!checkValue || !item.aired) {
         continue;
       }
@@ -182,9 +187,9 @@ interface TodaySchedule {
 }
 
 // Type for the entire schedule response
-interface TodayScheduleResp {
+interface ScheduleResp {
   tz: string;
-  schedule: TodaySchedule[];
+  schedule: TodaySchedule[] | WeekSchedule;
 }
 
 interface TelPhotoReq {
@@ -199,6 +204,30 @@ interface TelbotResp {
   error_code: number;
   description: string;
 }
+
+interface WeekSchedule {
+  Monday: TodaySchedule[];
+  Tuesday: TodaySchedule[]
+  Wednesday: TodaySchedule[]
+  Thursday: TodaySchedule[]
+  Friday: TodaySchedule[]
+  Saturday: TodaySchedule[]
+  Sunday: TodaySchedule[]
+}
+
+
+
+function parseScheduleOptions(schedule: WeekSchedule): string {
+  let optionsHtml = '';
+  for (const day of Object.keys(schedule)) {
+    const daySchedule = schedule[day as keyof WeekSchedule];
+    daySchedule.forEach((show: TodaySchedule) => {
+      optionsHtml += `<option value="${show.page}">${show.title}</option>`;
+    });
+  }
+  return optionsHtml;
+}
+
 
 const templatePage = `
 <!DOCTYPE html>
@@ -239,21 +268,30 @@ const templatePage = `
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
+
 <style>
   .maincontainer {
     background-image: url("https://r4.wallpaperflare.com/wallpaper/683/96/3/solo-leveling-sung-jin-woo-manga-anime-boys-hd-wallpaper-333b13cd2dc9fbf52f06e2e7d83be858.jpg");
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    z-index: -1;
   }
 </style>
 `
 
 function renderMessagePage(isError: boolean, messageContent: string): string {
   return `
-  ${templatePage}
+${templatePage}
+
 <body>
-  <div class="maincontainer px-3 py-10 text-white flex h-svh w-svw bg-black flex-col justify-center items-center">
+  <div class="maincontainer"></div>
+  <section class="px-3 py-10 text-white flex h-svh w-svw bg-black flex-col justify-center items-center">
     <div
       class="w-full max-w-3xl py-10 px-6 sm:px-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
 
@@ -268,18 +306,19 @@ function renderMessagePage(isError: boolean, messageContent: string): string {
         Go Back
       </a>
     </div>
-  </div>
+  </section>
 </body>
 </html>`;
 }
 
 
-function formPage(): string {
+function formPage(options: string): string {
   return `
-  ${templatePage}
+${templatePage}
+
 <body>
-  <div
-    class="maincontainer px-3 py-10 text-white flex min-h-svh h-full w-svw bg-black flex-col justify-center items-center">
+  <div class="maincontainer"></div>
+  <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
 
     <div class="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
       <div>
@@ -309,15 +348,18 @@ function formPage(): string {
               class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
               <div class="flex justify-between">
                 <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Page (Subsplease anime page)
+                  Page (Subsplease)
                 </label>
               </div>
-              <input required type="text" name="page" placeholder="https://subsplease.org/shows/demon-slayer"
-                autocomplete="off"
-                class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+              <select required name="page" id="animeSelect" onchange="updateTitle()"
+                class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+                <option value="" selected>Select an Anime</option>
+                ${options}
+              </select>
             </div>
           </div>
         </div>
+
         <div>
           <div>
             <div
@@ -327,8 +369,9 @@ function formPage(): string {
                   Title
                 </label>
               </div>
-              <input maxlength="150" required type="text" name="title" placeholder="Demon Slayer" autocomplete="off"
-                class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+              <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer"
+                autocomplete="off"
+                class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
             </div>
           </div>
         </div>
@@ -341,13 +384,12 @@ function formPage(): string {
                   class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">Season</label>
               </div>
               <div class="flex items-center">
-                <input required type="number" name="season"
-                  class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
+                <input required type="number" name="season" value="1"
+                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
               </div>
             </div>
           </div>
         </div>
-
 
         <div>
           <div>
@@ -355,11 +397,11 @@ function formPage(): string {
               class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
               <div class="flex justify-between">
                 <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Last Episode Aired (0 if none)</label>
+                  Episode (Last Aired, 0 if none)</label>
               </div>
               <div class="flex items-center">
                 <input required type="number" name="episode" value="0"
-                  class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
+                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
               </div>
             </div>
           </div>
@@ -375,8 +417,8 @@ function formPage(): string {
                 </label>
               </div>
               <div class="flex items-center">
-                <textarea maxlength="700" required name="summary"
-                  class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
+                <textarea maxlength="700" id="animeSummary" required name="summary"
+                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
               </div>
             </div>
           </div>
@@ -388,12 +430,12 @@ function formPage(): string {
               class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
               <div class="flex justify-between">
                 <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Image Url (Optional. Leave empty to assign default subsplease image)
+                  Image Url (Optional)
                 </label>
               </div>
               <div class="flex items-center">
                 <input type="text" name="image_url" placeholder="https://..." autocomplete="off"
-                  class="block w-full border-0 bg-transparent py-1 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+                  class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
               </div>
             </div>
           </div>
@@ -405,12 +447,10 @@ function formPage(): string {
         </button>
 
       </form>
-
     </div>
 
     <a href="https://t.me/jinwooanimes"
       class="w-fit mx-auto mt-5 px-4 py-3 gap-2 bg-opacity-60 backdrop-blur-md hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-full text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white border dark:border-white border-white  shadow-[5px_5px_5px_5px] shadow-slate-500/10 dark:shadow-white/20">
-
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" height="2em" fill="white">
         <path
           d="M248 8C111 8 0 119 0 256S111 504 248 504 496 393 496 256 385 8 248 8zM363 176.7c-3.7 39.2-19.9 134.4-28.1 178.3-3.5 18.6-10.3 24.8-16.9 25.4-14.4 1.3-25.3-9.5-39.3-18.7-21.8-14.3-34.2-23.2-55.3-37.2-24.5-16.1-8.6-25 5.3-39.5 3.7-3.8 67.1-61.5 68.3-66.7 .2-.7 .3-3.1-1.2-4.4s-3.6-.8-5.1-.5q-3.3 .7-104.6 69.1-14.8 10.2-26.9 9.9c-8.9-.2-25.9-5-38.6-9.1-15.5-5-27.9-7.7-26.8-16.3q.8-6.7 18.5-13.7 108.4-47.2 144.6-62.3c68.9-28.6 83.2-33.6 92.5-33.8 2.1 0 6.6 .5 9.6 2.9a10.5 10.5 0 0 1 3.5 6.7A43.8 43.8 0 0 1 363 176.7z" />
@@ -418,7 +458,18 @@ function formPage(): string {
       Join Updates Channel
     </a>
 
-  </div>
+  </section>
+  <script>
+    function updateTitle() {
+      const selectElement = document.getElementById('animeSelect');
+      const titleInput = document.getElementById('animeTitle');
+      const summaryInput = document.getElementById('animeSummary')
+      const selectedOption = selectElement.options[selectElement.selectedIndex];
+      titleInput.value = selectedOption?.value ? selectedOption.text : ""
+      summaryInput.value = selectedOption?.value ? ("Watch " + selectedOption.text) : ""
+    }
+  </script>
 </body>
-</html>`;
+</html>
+`;
 }
