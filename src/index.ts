@@ -291,7 +291,7 @@ ${templatePage}
 
 <body>
   <div class="maincontainer"></div>
-  <section class="px-3 py-10 text-white flex h-svh w-svw bg-black flex-col justify-center items-center">
+  <section class="px-3 py-10 text-white flex h-svh w-svw flex-col justify-center items-center">
     <div
       class="w-full max-w-3xl py-10 px-6 sm:px-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
 
