@@ -348,7 +348,7 @@ ${templatePage}
               class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
               <div class="flex justify-between">
                 <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Page (Subsplease)
+                  Anime Page (Subsplease)
                 </label>
               </div>
               <select required name="page" id="animeSelect" onchange="updateTitle()"
