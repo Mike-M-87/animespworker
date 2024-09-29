@@ -32,7 +32,7 @@ TELBOT_CHAT="<telegram chat/channel id>"
 TELBOT_OWNER_CHAT="<chat id of owner>" # Currently not used
 
 [triggers]
-crons = ["*/30 * * * *"] #every 30 minutes
+crons = ["*/30 * * * *"] # every 30 minutes
 ```
 
 
