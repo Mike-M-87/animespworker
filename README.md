@@ -3,6 +3,12 @@ Cloudflare worker which is scheduled-triggered to fetch new weekly anime release
 
 ## Setup
 
+Create your worker
+
+```bash
+npm create cloudflare@latest --myanimeworker
+```
+
 ### Wrangler Configuration (`wrangler.toml`)
 The worker is configured using wrangler 
 
