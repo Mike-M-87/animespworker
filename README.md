@@ -7,8 +7,8 @@ Cloudflare worker which is scheduled-triggered to fetch new weekly anime release
 The worker is configured using wrangler 
 
 
-The configuration is defined in the `wrangler.toml` file. Create the file and set your worker variables and settings
-_Example:_
+The configuration is defined in the `wrangler.toml` file. Set your worker variables and settings here
+_Example of my `wrangler.toml`:_
 ```toml
 #:schema node_modules/wrangler/config-schema.json
 name = "animespworker"
