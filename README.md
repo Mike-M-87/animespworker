@@ -10,11 +10,12 @@ npm create cloudflare@latest --myanimeworker
 ```
 
 ### Wrangler Configuration (`wrangler.toml`)
-The worker is configured using wrangler 
+The worker is configured using wrangler
 
+The configuration is defined in the `wrangler.toml` file. Set your worker variables and settings here.
 
-The configuration is defined in the `wrangler.toml` file. Set your worker variables and settings here
 _Example of my `wrangler.toml`:_
+
 ```toml
 #:schema node_modules/wrangler/config-schema.json
 name = "animespworker"
@@ -38,6 +39,7 @@ crons = ["*/30 * * * *"] #every 30 minutes
 ### KV Namespace
 
 This worker interacts with a KV namespace named `FAVS` as defined in `wrangler.toml` Make sure the namespace is properly created and bound in your Cloudflare account before deploying.
+
 If the KV uses a different name, properly rename it on your `wrangler.toml` and the envs on `worker-configuration.d.ts`
 
 
