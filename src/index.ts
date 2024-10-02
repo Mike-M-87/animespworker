@@ -194,7 +194,7 @@ function parseScheduleOptions(schedule: WeekSchedule): string {
     const daySchedule = schedule[day as keyof WeekSchedule];
     daySchedule.forEach((show: TodaySchedule) => {
       const date = new Date()
-      const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day) + 1;
+      const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
       date.setDate(date.getDate() + ((dayIndex + 7) - date.getDay()) % 7);
       const formattedDate = date.toISOString().split('T')?.[0];
       optionsHtml += `<option value="${show.page}" data-timestamp="${formattedDate}">${show.title}</option>`;
@@ -202,6 +202,7 @@ function parseScheduleOptions(schedule: WeekSchedule): string {
   }
   return optionsHtml;
 }
+
 
 async function handlePostRequestPage(request: Request, env: Env): Promise<Response> {
   try {
