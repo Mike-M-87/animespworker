@@ -431,7 +431,7 @@ ${templatePage}
                 </label>
               </div>
               <div class="flex items-center">
-                <textarea maxlength="700" id="animeSummary" required name="summary"
+                <textarea rows="3" maxlength="700" id="animeSummary" required name="summary"
                   class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
               </div>
             </div>
