@@ -52,20 +52,22 @@
   }
 </style>
 
+
+
 <body>
   <div class="maincontainer"></div>
-  <section class="px-3 py-10 text-white flex h-svh w-svw flex-col justify-center items-center">
+  <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
+
     <div
-      class="w-full max-w-3xl py-10 px-6 sm:px-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
+      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
-      <div class="flex flex-col">
-        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? " text-red-500" : "text-green-500" }">
-          ${messageContent}
-        </h3>
-      </div>
+      <h3 class="text-xl mb-5 font-semibold leading-6 tracking-tighter ${isError ? 'text-red-500' : 'text-green-500' }">
+        ${messageContent}
+      </h3>
 
-      <a href="https://animespworker.micminn872837.workers.dev"
-        class="w-fit mx-auto mt-6 p-4 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black">
+
+      <a href="/${isFavs ? '?favs=true' : ''}"
+        class="w-fit mx-auto px-4 py-3 bg-opacity-60 hover:bg-opacity-70 backdrop-blur-md rounded-full text-sm bg-black text-white border border-white/60 shadow-[5px_5px_5px_5px] shadow-white/10">
         Go Back
       </a>
     </div>

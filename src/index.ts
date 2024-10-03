@@ -3,8 +3,10 @@ export default {
     if (request.method === 'POST') {
       return handlePostRequestPage(request, env);
     }
-
-    return handleGetRequestPage(env);
+    if (request.url.includes('favs=true')) {
+      return handleGetFavsPage(env);
+    }
+    return handleGetRequestPage();
   },
   async scheduled(event, env, ctx): Promise<void> {
     await RunAction(env)
@@ -66,16 +68,6 @@ async function processSchedule(env: Env) {
     const currentTime = new Date()
     const currentDate = currentTime.toISOString().split('T')[0];
 
-
-    // let favkeys: any = [];
-    // let cursor = null;
-    // do {
-    // 	const listResponse: any = await env.FAVS.list({ cursor });
-    // 	favkeys = favkeys.concat(listResponse.keys);
-    // 	cursor = listResponse.cursor;
-    // } while (cursor);
-    // const favs = favkeys.map((f: any) => f.name)
-
     const daySchedule = scheduleData?.schedule as TodaySchedule[]
     for (const item of daySchedule) {
       if (!item.aired || !item.page) {
@@ -89,7 +81,7 @@ async function processSchedule(env: Env) {
 
       const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
       if (timeObj > currentTime) {
-        continue
+        continue // Skip items that are not aired yet
       }
 
       let animeData: AnimePage | null = null;
@@ -100,14 +92,7 @@ async function processSchedule(env: Env) {
       }
 
       if (!animeData) {
-        animeData = {
-          season: 1,
-          episode: 0,
-          timestamp: "",
-          image_url: "",
-          title: item.title,
-          summary: "Watch " + item.title
-        }
+        continue // Skip items that are not in the KV
       }
 
       if (!animeData.image_url) {
@@ -205,6 +190,7 @@ function parseScheduleOptions(schedule: WeekSchedule): string {
 
 
 async function handlePostRequestPage(request: Request, env: Env): Promise<Response> {
+  let isFavs = false;
   try {
     const formData = await request.formData();
     const page = formData.get('page') as string;
@@ -214,6 +200,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
     const summary = formData.get('summary') as string;
     const image_url = formData.get('image_url') as string;
     const timestamp = formData.get('timestamp') as string;
+    isFavs = (formData.get('isFavs') as string) == "1";
 
     if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
       const newAnime: AnimePage = {
@@ -225,22 +212,56 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
         image_url
       }
       await env.FAVS.put(page.toString(), JSON.stringify(newAnime));
-      return new Response(renderMessagePage(false, `"${title}" has been added to your FAVS.`), { headers: { 'Content-Type': 'text/html' } });
+      return new Response(renderMessagePage(false, `"${page}" has been ${isFavs ? "edited on" : "added to"} your FAVS.`, isFavs), { headers: { 'Content-Type': 'text/html' } });
     } else {
       throw new Error('All fields are required and season/episode must be valid numbers.');
     }
   } catch (error: any) {
-    return new Response(renderMessagePage(true, 'Error adding anime to favourite: ' + error.message), { headers: { 'Content-Type': 'text/html' } });
+    return new Response(renderMessagePage(true, `Error ${isFavs ? "editing" : "adding"} anime to favourites: ${error?.message || "Unknown error"}`, isFavs), { headers: { 'Content-Type': 'text/html' } });
   }
 }
 
-async function handleGetRequestPage(env: Env): Promise<Response> {
+async function handleGetRequestPage(): Promise<Response> {
   const subspleaseResponse = await fetch('https://subsplease.org/api/?f=schedule&tz=Etc/GMT');
   const subspleaseData = (await subspleaseResponse.json()) as ScheduleResp;
   const options = parseScheduleOptions(subspleaseData.schedule as WeekSchedule);
   return new Response(formPage(options), { headers: { 'Content-Type': 'text/html' } });
 }
 
+async function handleGetFavsPage(env: Env): Promise<Response> {
+  const favourites = await parseFavourites(env)
+  return new Response(renderDetailPage(favourites), { headers: { 'Content-Type': 'text/html' } });
+}
+
+async function parseFavourites(env: Env): Promise<string> {
+  let favouritesHtml = ''
+  let favkeys: any = [];
+  let cursor = null;
+  do {
+    const listResponse: any = await env.FAVS.list({ cursor });
+    favkeys = favkeys.concat(listResponse.keys);
+    cursor = listResponse.cursor;
+  } while (cursor);
+
+  for (const key of favkeys) {
+    if (!key?.name) continue
+    const value = await env.FAVS.get(key.name);
+    if (!value) continue
+    let animeData: AnimePage | null = null;
+    try {
+      animeData = JSON.parse(value);
+    } catch (error) {
+      animeData = null;
+    }
+    if (animeData) favouritesHtml += renderFavItem(key.name, animeData)
+  }
+
+  if (!favouritesHtml) {
+    favouritesHtml = "<p class='font-medium text-white/50 mx-auto my-5'>No favourites yet</p>"
+  }
+
+  return favouritesHtml
+}
 
 const templatePage = `
 <!DOCTYPE html>
@@ -295,40 +316,190 @@ const templatePage = `
     min-height: 100vh;
     z-index: -1;
   }
+  summary::marker {
+    content: none;
+    display: none;
+    visibility: hidden;
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+  }
 </style>
 `
 
-function renderMessagePage(isError: boolean, messageContent: string): string {
+
+function renderMessagePage(isError: boolean, messageContent: string, isFavs: boolean): string {
   return `
 ${templatePage}
 
 <body>
   <div class="maincontainer"></div>
-  <section class="px-3 py-10 text-white flex h-svh w-svw flex-col justify-center items-center">
+  <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
+
     <div
-      class="w-full max-w-3xl py-10 px-6 sm:px-10 bg-black bg-opacity-60 backdrop-blur-lg border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
+      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
-      <div class="flex flex-col">
-        <h3 class="text-xl font-semibold leading-6 tracking-tighter ${isError ? "text-red-500" : "text-green-500"}">
-          ${messageContent}
-        </h3>
-      </div>
+      <h3 class="text-xl mb-5 font-semibold leading-6 tracking-tighter ${isError ? 'text-red-500' : 'text-green-500' }">
+        ${messageContent}
+      </h3>
 
-      <a href="https://animespworker.micminn872837.workers.dev"
-        class="w-fit mx-auto mt-6 p-4 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black">
+
+      <a href="/${isFavs ? '?favs=true' : ''}"
+        class="w-fit mx-auto px-4 py-3 bg-opacity-60 hover:bg-opacity-70 backdrop-blur-md rounded-full text-sm bg-black text-white border border-white/60 shadow-[5px_5px_5px_5px] shadow-white/10">
         Go Back
       </a>
     </div>
   </section>
 </body>
+
 </html>`;
+}
+
+function renderDetailPage(favs: string): string {
+  return `
+${templatePage}
+<body>
+  <div class="maincontainer"></div>
+  <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
+
+    <div class="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" />
+        </svg>
+      </div>
+      Edit your Favourite Animes
+    </div>
+
+    <div
+      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
+
+      <div class="flex flex-col">
+        <h3 class="text-xl font-semibold leading-6 tracking-tighter">
+          Favourites
+        </h3>
+        <p class="text-sm font-medium text-white/50">
+          Manage your favourite anime list.
+        </p>
+      </div>
+
+      <div class="flex mt-5 flex-col gap-4">
+        ${favs}
+      </div>
+    </div>
+
+    <a href="/"
+      class="w-fit mx-auto mt-5 px-4 py-3 bg-opacity-60 hover:bg-opacity-70 backdrop-blur-md rounded-full text-sm bg-black text-white border border-white/60 shadow-[5px_5px_5px_5px] shadow-white/10">
+      Back to Home
+    </a>
+
+  </section>
+</body>
+</html>
+`
+}
+
+function renderFavItem(checkKey: string, anime: AnimePage): string {
+  return ` 
+<details class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl">
+  <summary class="flex items-center gap-2 p-3">
+    <span class="-mt-px">${anime.title}</span>
+    <div class="ml-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+        stroke="currentColor" class="w-4 h-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    </div>
+  </summary>
+
+  <form method="post" class="flex flex-col gap-4 px-3 pb-3">
+    <input type="hidden" value="${anime.timestamp}" name="timestamp">
+    <input readonly value="${checkKey}" name="page"
+      class="bg-transparent mt- text-white/50 text-sm outline-none border-none">
+    <input type="hidden" value="1" name="isFavs">
+
+    <div
+      class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+      <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+        Title
+      </label>
+      <input
+        class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground"
+        maxlength="150" required type="text" name="title" autocomplete="off" value="${anime.title}">
+    </div>
+
+
+    <div
+      class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+
+      <label
+        class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">Season
+      </label>
+
+      <div class="flex items-center">
+        <input required type="number" name="season" value="${anime.season}"
+          class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
+      </div>
+    </div>
+
+
+
+    <div
+      class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+      <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+        Episode (Last Aired, 0 if none)
+      </label>
+      <div class="flex items-center">
+        <input required type="number" name="episode" value="${anime.episode}"
+          class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
+      </div>
+    </div>
+
+
+    <div
+      class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+      <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+        Summary
+      </label>
+      <div class="flex items-center">
+        <textarea
+          class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"
+          rows="3" maxlength="700" required name="summary">${anime.summary}</textarea>
+      </div>
+    </div>
+
+
+
+    <div
+      class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+      <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+        Image Url (Optional)
+      </label>
+      <div class="flex items-center">
+        <input type="text" name="image_url" placeholder="https://..." autocomplete="off"
+          value="${anime.image_url}"
+          class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+      </div>
+    </div>
+
+    <button
+      class="w-full hover:bg-white/90 px-4 py-3 rounded-xl text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black"
+      type="submit">
+      Save
+    </button>
+
+  </form>
+</details>
+`;
 }
 
 
 function formPage(options: string): string {
   return `
 ${templatePage}
-
 <body>
   <div class="maincontainer"></div>
   <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
@@ -345,132 +516,95 @@ ${templatePage}
     </div>
 
     <div
-      class="w-full max-w-3xl py-10 px-6 sm:px-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border dark:border-b-white/50 dark:border-t-white/50 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-lg border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:rounded-xl lg:shadow-none">
+      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
       <div class="flex flex-col">
         <h3 class="text-xl font-semibold leading-6 tracking-tighter">Receive notifications for this anime</h3>
-        <p class="mt-1.5 text-sm font-medium text-white/50">Enter the anime details below.
+        <p class="mt-1 text-sm font-medium text-white/50">Enter the anime details below.
         </p>
       </div>
 
 
-      <form method="post" class="mt-10 flex flex-col gap-4">
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Anime Page (Subsplease)
-                </label>
-              </div>
-              <select required name="page" id="animeSelect" onchange="updateTitle()"
-                class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
-                <option value="" selected>Select an Anime</option>
-                ${options}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Title
-                </label>
-              </div>
-              <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer"
-                autocomplete="off"
-                class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
-            </div>
-          </div>
-        </div>
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label
-                  class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">Season</label>
-              </div>
-              <div class="flex items-center">
-                <input required type="number" name="season" value="1"
-                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <form method="post" class="mt-5 flex flex-col gap-4">
         <input type="hidden" id="animeTimestamp" name="timestamp">
+        <input type="hidden" value="" name="isFavs">
 
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Episode (Last Aired, 0 if none)</label>
-              </div>
-              <div class="flex items-center">
-                <input required type="number" name="episode" value="0"
-                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
-              </div>
-            </div>
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Anime Page (Subsplease)
+          </label>
+          <select required name="page" id="animeSelect" onchange="updateTitle()"
+            class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+            <option value="" selected>Select an Anime</option>
+            ${options}
+          </select>
+        </div>
+
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Title
+          </label>
+          <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer"
+            autocomplete="off"
+            class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+        </div>
+
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Season
+          </label>
+          <div class="flex items-center">
+            <input required type="number" name="season" value="1"
+              class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
           </div>
         </div>
 
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Summary
-                </label>
-              </div>
-              <div class="flex items-center">
-                <textarea rows="3" maxlength="700" id="animeSummary" required name="summary"
-                  class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
-              </div>
-            </div>
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Episode (Last Aired, 0 if none)</label>
+          <div class="flex items-center">
+            <input required type="number" name="episode" value="0"
+              class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
           </div>
         </div>
 
-        <div>
-          <div>
-            <div
-              class="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
-              <div class="flex justify-between">
-                <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-                  Image Url (Optional)
-                </label>
-              </div>
-              <div class="flex items-center">
-                <input type="text" name="image_url" placeholder="https://..." autocomplete="off"
-                  class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
-              </div>
-            </div>
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Summary
+          </label>
+          <div class="flex items-center">
+            <textarea rows="3" maxlength="700" id="animeSummary" required name="summary"
+              class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
+          </div>
+        </div>
+
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Image Url (Optional)
+          </label>
+          <div class="flex items-center">
+            <input type="text" name="image_url" placeholder="https://..." autocomplete="off"
+              class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
           </div>
         </div>
 
         <button
-          class="w-full mt-6 p-4 hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 inline-flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black"
+          class="w-full p-4 rounded-xl text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black"
           type="submit">Add
         </button>
 
       </form>
     </div>
 
-    <a href="https://t.me/jinwooanimes"
-      class="w-fit mx-auto mt-5 px-4 py-3 gap-2 bg-opacity-60 backdrop-blur-md hover:text-white hover:ring hover:ring-white transition duration-300 flex items-center justify-center rounded-full text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white border dark:border-white border-white  shadow-[5px_5px_5px_5px] shadow-slate-500/10 dark:shadow-white/20">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" height="2em" fill="white">
-        <path
-          d="M248 8C111 8 0 119 0 256S111 504 248 504 496 393 496 256 385 8 248 8zM363 176.7c-3.7 39.2-19.9 134.4-28.1 178.3-3.5 18.6-10.3 24.8-16.9 25.4-14.4 1.3-25.3-9.5-39.3-18.7-21.8-14.3-34.2-23.2-55.3-37.2-24.5-16.1-8.6-25 5.3-39.5 3.7-3.8 67.1-61.5 68.3-66.7 .2-.7 .3-3.1-1.2-4.4s-3.6-.8-5.1-.5q-3.3 .7-104.6 69.1-14.8 10.2-26.9 9.9c-8.9-.2-25.9-5-38.6-9.1-15.5-5-27.9-7.7-26.8-16.3q.8-6.7 18.5-13.7 108.4-47.2 144.6-62.3c68.9-28.6 83.2-33.6 92.5-33.8 2.1 0 6.6 .5 9.6 2.9a10.5 10.5 0 0 1 3.5 6.7A43.8 43.8 0 0 1 363 176.7z" />
-      </svg>
-      Join Updates Channel
+    <a href="/?favs=true"
+      class="w-fit mx-auto mt-5 px-4 py-3 bg-opacity-60 hover:bg-opacity-70 backdrop-blur-md rounded-full text-sm bg-black text-white border border-white/60 shadow-[5px_5px_5px_5px] shadow-white/10">
+      Go to Favourites
     </a>
 
   </section>
