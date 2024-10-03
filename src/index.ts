@@ -386,7 +386,7 @@ ${templatePage}
         </p>
       </div>
 
-      <div class="flex mt-5 flex-col gap-4">
+      <div class="flex mt-5 flex-col gap-4 max-h-[80vh] overflow-y-auto">
         ${favs}
       </div>
     </div>
