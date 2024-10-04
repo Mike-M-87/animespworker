@@ -92,8 +92,7 @@
         </p>
       </div>
 
-      <div id="favsSection" class="flex mt-5 flex-col gap-4 max-h-[80vh] overflow-y-auto">
-        ${favs}
+      <div id="favsSection" class="flex mt-5 flex-col gap-4 sm:max-h-[67vh] max-h-[66vh] overflow-y-auto">
       </div>
     </div>
 
@@ -111,7 +110,8 @@
 
 
 
-  <details id="fav" class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl">
+  <details hidden id="fav"
+    class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl">
     <summary class="flex items-center gap-2 p-3">
       <span class="-mt-px">${anime.title}</span>
       <div class="ml-auto">
@@ -200,7 +200,7 @@
   </details>
 
 
-  <p class="font-medium text-white/50 mx-auto my-5">No favourites yet</p>
+  <p hidden class="font-medium text-white/50 mx-auto my-5">No favourites yet</p>
 
 
   <script>
@@ -209,7 +209,9 @@
       const fav = document.getElementById('fav')
       console.log("🚀 ~ simulateMany ~ fav:", fav)
       for (let i = 0; i < 30; i++) {
-        favsSection.appendChild(fav.cloneNode(true))
+        const newFav = fav.cloneNode(true)
+        newFav.removeAttribute('hidden')
+        favsSection.appendChild(newFav)
       }
     }
     simulateMany()

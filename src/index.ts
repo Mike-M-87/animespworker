@@ -182,7 +182,7 @@ function parseScheduleOptions(schedule: WeekSchedule): string {
       const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
       date.setDate(date.getDate() + ((dayIndex + 7) - date.getDay()) % 7);
       const formattedDate = date.toISOString().split('T')?.[0];
-      optionsHtml += `<option value="${show.page}" data-timestamp="${formattedDate}">${show.title}</option>`;
+      optionsHtml += `<option value="${show.page}" data-timestamp="${formattedDate}">${show.title} (${day.slice(0, 3)})</option>`;
     });
   }
   return optionsHtml;
@@ -340,7 +340,7 @@ ${templatePage}
     <div
       class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
-      <h3 class="text-xl mb-5 font-semibold leading-6 tracking-tighter ${isError ? 'text-red-500' : 'text-green-500' }">
+      <h3 class="text-xl mb-5 font-semibold leading-6 tracking-tighter ${isError ? 'text-red-500' : 'text-green-500'}">
         ${messageContent}
       </h3>
 
@@ -386,7 +386,7 @@ ${templatePage}
         </p>
       </div>
 
-      <div class="flex mt-5 flex-col gap-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex mt-5 flex-col gap-4 sm:max-h-[67vh] max-h-[66vh] overflow-y-auto">
         ${favs}
       </div>
     </div>
