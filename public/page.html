@@ -90,7 +90,6 @@
 
 
       <form method="post" class="mt-5 flex flex-col gap-4">
-        <input type="hidden" id="animeTimestamp" name="timestamp">
         <input type="hidden" value="" name="isFavs">
 
         <div
@@ -178,10 +177,9 @@
       const titleInput = document.getElementById('animeTitle');
       const summaryInput = document.getElementById('animeSummary')
       const selectedOption = selectElement.options[selectElement.selectedIndex];
-      const timestampInput = document.getElementById('animeTimestamp');
-      timestampInput.value = selectedOption?.value ? selectedOption.getAttribute('data-timestamp') : ""
-      titleInput.value = selectedOption?.value ? selectedOption.text : ""
-      summaryInput.value = selectedOption?.value ? ("Watch " + selectedOption.text) : ""
+      const selectedTitle = selectedOption?.value ? selectedOption.text.split(" (")?.[0] : ""
+      titleInput.value = selectedTitle
+      summaryInput.value = selectedTitle ? ("Watch " + selectedTitle) : ""
     }
   </script>
 </body>

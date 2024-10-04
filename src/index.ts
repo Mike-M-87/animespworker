@@ -74,34 +74,33 @@ async function processSchedule(env: Env) {
         continue
       }
 
+      const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
+      if (timeObj > currentTime) {
+        continue // Skip items that are not within time yet
+      }
+
       const checkValue = await env.FAVS.get(item.page);
       if (!checkValue) {
         continue;
       }
+      
 
-      const timeObj = new Date(`${currentDate}T${item.time}:00.00Z`);
-      if (timeObj > currentTime) {
-        continue // Skip items that are not aired yet
-      }
-
-      let animeData: AnimePage | null = null;
+      let animeData: AnimePage
       try {
         animeData = JSON.parse(checkValue);
       } catch (error) {
-        animeData = null;
+        continue
       }
 
-      if (!animeData) {
-        continue // Skip items that are not in the KV
+      if (animeData.timestamp == currentDate) {
+        continue; // Skip already sent items
       }
 
       if (!animeData.image_url) {
         animeData.image_url = item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318"
       }
 
-      if (animeData.timestamp == currentDate) {
-        continue; // Skip already sent items
-      }
+      
 
       const previousEpisode = animeData.episode;
 
@@ -178,11 +177,7 @@ function parseScheduleOptions(schedule: WeekSchedule): string {
   for (const day of Object.keys(schedule)) {
     const daySchedule = schedule[day as keyof WeekSchedule];
     daySchedule.forEach((show: TodaySchedule) => {
-      const date = new Date()
-      const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
-      date.setDate(date.getDate() + ((dayIndex + 7) - date.getDay()) % 7);
-      const formattedDate = date.toISOString().split('T')?.[0];
-      optionsHtml += `<option value="${show.page}" data-timestamp="${formattedDate}">${show.title} (${day.slice(0, 3)})</option>`;
+      optionsHtml += `<option value="${show.page}">${show.title} (${day.slice(0, 3)})</option>`;
     });
   }
   return optionsHtml;
@@ -199,7 +194,6 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
     const episode = parseInt(formData.get('episode') as string, 10);
     const summary = formData.get('summary') as string;
     const image_url = formData.get('image_url') as string;
-    const timestamp = formData.get('timestamp') as string;
     isFavs = (formData.get('isFavs') as string) == "1";
 
     if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
@@ -208,7 +202,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
         season,
         episode,
         summary,
-        timestamp,
+        timestamp: "",
         image_url
       }
       await env.FAVS.put(page.toString(), JSON.stringify(newAnime));
@@ -247,13 +241,13 @@ async function parseFavourites(env: Env): Promise<string> {
     if (!key?.name) continue
     const value = await env.FAVS.get(key.name);
     if (!value) continue
-    let animeData: AnimePage | null = null;
+    let animeData: AnimePage
     try {
       animeData = JSON.parse(value);
     } catch (error) {
-      animeData = null;
+      continue;
     }
-    if (animeData) favouritesHtml += renderFavItem(key.name, animeData)
+    favouritesHtml += renderFavItem(key.name, animeData)
   }
 
   if (!favouritesHtml) {
@@ -416,7 +410,6 @@ function renderFavItem(checkKey: string, anime: AnimePage): string {
   </summary>
 
   <form method="post" class="flex flex-col gap-4 px-3 pb-3">
-    <input type="hidden" value="${anime.timestamp}" name="timestamp">
     <input readonly value="${checkKey}" name="page"
       class="bg-transparent mt- text-white/50 text-sm outline-none border-none">
     <input type="hidden" value="1" name="isFavs">
@@ -450,7 +443,7 @@ function renderFavItem(checkKey: string, anime: AnimePage): string {
     <div
       class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
       <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-        Episode (Last Aired, 0 if none)
+        Episode (Last Aired, 0 if new/none)
       </label>
       <div class="flex items-center">
         <input required type="number" name="episode" value="${anime.episode}"
@@ -526,7 +519,6 @@ ${templatePage}
 
 
       <form method="post" class="mt-5 flex flex-col gap-4">
-        <input type="hidden" id="animeTimestamp" name="timestamp">
         <input type="hidden" value="" name="isFavs">
 
         <div
@@ -565,7 +557,8 @@ ${templatePage}
         <div
           class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
           <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-            Episode (Last Aired, 0 if none)</label>
+            Episode (Last Aired, 0 if new/none)
+          </label>
           <div class="flex items-center">
             <input required type="number" name="episode" value="0"
               class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
@@ -614,10 +607,9 @@ ${templatePage}
       const titleInput = document.getElementById('animeTitle');
       const summaryInput = document.getElementById('animeSummary')
       const selectedOption = selectElement.options[selectElement.selectedIndex];
-      const timestampInput = document.getElementById('animeTimestamp');
-      timestampInput.value = selectedOption?.value ? selectedOption.getAttribute('data-timestamp') : ""
-      titleInput.value = selectedOption?.value ? selectedOption.text : ""
-      summaryInput.value = selectedOption?.value ? ("Watch " + selectedOption.text) : ""
+      const selectedTitle = selectedOption?.value ? selectedOption.text.split(" (")?.[0] : ""
+      titleInput.value = selectedTitle
+      summaryInput.value = selectedTitle ? ("Watch " + selectedTitle) : ""
     }
   </script>
 </body>
