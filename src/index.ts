@@ -83,7 +83,7 @@ async function processSchedule(env: Env) {
       if (!checkValue) {
         continue;
       }
-      
+
 
       let animeData: AnimePage
       try {
@@ -100,22 +100,14 @@ async function processSchedule(env: Env) {
         animeData.image_url = item.image_url ? `https://subsplease.org${item.image_url.replace(/\\\//g, '/')}` : "https://picsum.photos/225/318"
       }
 
-      
 
-      const previousEpisode = animeData.episode;
-
-      const newPhoto = {
-        chat_id: env.TELBOT_CHAT,
-        photo: animeData.image_url,
-        caption: `<blockquote><b>${animeData.title || item.title}</b></blockquote>\n───────────────────\n➤ <b>Season: ${animeData.season.toString().padStart(2, "0")}</b>\n➤ <b>Episode: ${(previousEpisode + 1).toString().padStart(2, "0")}</b>\n➤ <b>Time: ${timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${item.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${animeData.summary}</i></blockquote>`,
-        parse_mode: 'HTML',
-      };
+      const newPhoto = createChatPhoto(env.TELBOT_CHAT, animeData, timeObj)
 
       await sendNotification(newPhoto, env);
 
       const newAnimeData = {
         ...animeData,
-        episode: previousEpisode + 1,
+        episode: animeData.episode + 1,
         timestamp: currentDate
       }
 
@@ -127,13 +119,57 @@ async function processSchedule(env: Env) {
   }
 }
 
+
+async function processCustomSchedule(env: Env) {
+  try {
+    const currentTime = new Date()
+    if (currentTime.getUTCHours() !== 16) return null
+    const dayOfWeek = new Date().getDay()
+    const favKeys = await getFavKeys(env)
+    for (const key of favKeys) {
+      if (!key?.name) continue
+      const value = await env.FAVS.get(key.name);
+      if (!value) continue
+      let animeData: AnimePage
+      try {
+        animeData = JSON.parse(value);
+      } catch (error) {
+        continue
+      }
+      if (animeData.customDay !== dayOfWeek.toString()) continue
+      const newPhoto = createChatPhoto(env.TELBOT_CHAT, animeData, currentTime)
+      await sendNotification(newPhoto, env);
+      const newAnimeData = {
+        ...animeData,
+        episode: animeData.episode + 1,
+      }
+
+      await env.FAVS.put(animeData.page, JSON.stringify(newAnimeData));
+    }
+  } catch (error: any) {
+    return error?.message || "Could not process custom schedule"
+  }
+}
+
+function createChatPhoto(telbotChatId: string, animeData: AnimePage, timeAired: Date): TelPhotoReq {
+  const newPhoto = {
+    chat_id: telbotChatId,
+    photo: animeData.image_url,
+    caption: `<blockquote><b>${animeData.title}</b></blockquote>\n───────────────────\n➤ <b>Season: ${animeData.season.toString().padStart(2, "0")}</b>\n➤ <b>Episode: ${(animeData.episode + 1).toString().padStart(2, "0")}</b>\n➤ <b>Time: ${timeAired.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>\n➤ <b>Page: <a href="https://subsplease.org/shows/${animeData.page}">Subsplease Link</a></b>\n───────────────────\n<blockquote expandable><i>${animeData.summary}</i></blockquote>`,
+    parse_mode: 'HTML',
+  };
+  return newPhoto
+}
+
 interface AnimePage {
+  page: string;
   title: string;
   image_url: string;
   season: number;
   episode: number;
   summary: string;
   timestamp: string
+  customDay?: string
 }
 interface TodaySchedule {
   title: string;
@@ -198,6 +234,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
 
     if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
       const newAnime: AnimePage = {
+        page,
         title,
         season,
         episode,
@@ -222,13 +259,8 @@ async function handleGetRequestPage(): Promise<Response> {
   return new Response(formPage(options), { headers: { 'Content-Type': 'text/html' } });
 }
 
-async function handleGetFavsPage(env: Env): Promise<Response> {
-  const favourites = await parseFavourites(env)
-  return new Response(renderDetailPage(favourites), { headers: { 'Content-Type': 'text/html' } });
-}
 
-async function parseFavourites(env: Env): Promise<string> {
-  let favouritesHtml = ''
+async function getFavKeys(env: Env) {
   let favkeys: any = [];
   let cursor = null;
   do {
@@ -236,7 +268,12 @@ async function parseFavourites(env: Env): Promise<string> {
     favkeys = favkeys.concat(listResponse.keys);
     cursor = listResponse.cursor;
   } while (cursor);
+  return favkeys
+}
 
+async function handleGetFavsPage(env: Env): Promise<Response> {
+  let favouritesHtml = ''
+  const favkeys = await getFavKeys(env)
   for (const key of favkeys) {
     if (!key?.name) continue
     const value = await env.FAVS.get(key.name);
@@ -247,15 +284,16 @@ async function parseFavourites(env: Env): Promise<string> {
     } catch (error) {
       continue;
     }
-    favouritesHtml += renderFavItem(key.name, animeData)
+    favouritesHtml += renderFavItem(animeData)
   }
 
   if (!favouritesHtml) {
     favouritesHtml = "<p class='font-medium text-white/50 mx-auto my-5'>No favourites yet</p>"
   }
 
-  return favouritesHtml
+  return new Response(renderDetailPage(favouritesHtml), { headers: { 'Content-Type': 'text/html' } });
 }
+
 
 const templatePage = `
 <!DOCTYPE html>
@@ -396,7 +434,7 @@ ${templatePage}
 `
 }
 
-function renderFavItem(checkKey: string, anime: AnimePage): string {
+function renderFavItem(anime: AnimePage): string {
   return ` 
 <details class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl">
   <summary class="flex items-center gap-2 p-3">
@@ -410,7 +448,7 @@ function renderFavItem(checkKey: string, anime: AnimePage): string {
   </summary>
 
   <form method="post" class="flex flex-col gap-4 px-3 pb-3">
-    <input readonly value="${checkKey}" name="page"
+    <input readonly value="${anime.page}" name="page"
       class="bg-transparent mt- text-white/50 text-sm outline-none border-none">
     <input type="hidden" value="1" name="isFavs">
 
