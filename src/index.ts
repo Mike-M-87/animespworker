@@ -171,9 +171,7 @@ function createChatPhoto(telbotChatId: string, animeData: AnimePage, timeAired: 
   const episode = `➤ <b>Episode: ${(animeData.episode + 1).toString().padStart(2, "0")}</b>`;
   const time = `➤ <b>Time: ${timeAired.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>`;
 
-  const pageUrl = isCustom
-    ? `${animeData.customSourceLink} ${animeData.episode.toString().padStart(2, "0")}`
-    : `https://subsplease.org/shows/${animeData.page}`;
+  const pageUrl = isCustom ? animeData.customSourceLink : `https://subsplease.org/shows/${animeData.page}`;
   const pageName = isCustom ? "Nyaa" : "Subsplease";
   const page = `➤ <b>Page: <a href="${pageUrl}">${pageName} Link</a></b>`;
 
