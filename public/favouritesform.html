@@ -146,21 +146,28 @@
       <div
         class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
         <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-          Custom Day/Time
+          Link & Day/Time
         </label>
-        <div class="w-full flex items-center justify-between">
-          <select name="customDay" required
-            class="border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
-            <option value="">Select a Day</option>
-            <option ${anime.customDay==0 ? 'selected' : '' } value="0">Sunday</option>
-            <option ${anime.customDay==1 ? 'selected' : '' } value="1">Monday</option>
-            <option ${anime.customDay==2 ? 'selected' : '' } value="2">Tuesday</option>
-            <option ${anime.customDay==3 ? 'selected' : '' } value="3">Wednesday</option>
-            <option ${anime.customDay==4 ? 'selected' : '' } value="4">Thursday</option>
-            <option ${anime.customDay==5 ? 'selected' : '' } value="5">Friday</option>
-            <option ${anime.customDay==6 ? 'selected' : '' } value="6">Saturday</option>
-          </select>
-          <input type="time" required name="customTime" value="${anime.customTime}" class="bg-transparent text-sm">
+        <div class="w-full flex sm:flex-row flex-col sm:items-center gap-2 py-1">
+          <input type="url" name="sourcelink" value="${anime?.customSourceLink}"
+            placeholder="Quick search: https://nyaa.si/?..." autocomplete="off"
+            class="bg-transparent border rounded-lg p-1 flex-grow text-sm outline-none border-white/20">
+
+          <div class="flex items-center justify-between gap-2">
+            <select name="customDay" required
+              class="p-1 border border-white/20 bg-transparent rounded-lg text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+              <option value="">Select a Day</option>
+              <option ${anime.customDay==0 ? 'selected' : '' } value="0">Sunday</option>
+              <option ${anime.customDay==1 ? 'selected' : '' } value="1">Monday</option>
+              <option ${anime.customDay==2 ? 'selected' : '' } value="2">Tuesday</option>
+              <option ${anime.customDay==3 ? 'selected' : '' } value="3">Wednesday</option>
+              <option ${anime.customDay==4 ? 'selected' : '' } value="4">Thursday</option>
+              <option ${anime.customDay==5 ? 'selected' : '' } value="5">Friday</option>
+              <option ${anime.customDay==6 ? 'selected' : '' } value="6">Saturday</option>
+            </select>
+            <input type="time" required name="customTime" value="${anime?.customTime}"
+              class="bg-transparent text-sm border border-white/20 rounded-lg">
+          </div>
         </div>
       </div>
       `:''}

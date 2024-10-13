@@ -29,12 +29,14 @@ ${templatePage}
         <div class="flex items-center gap-2 flex-wrap justify-between">
           <p class="mt-1 text-sm font-medium text-white/50">Enter the anime details below.</p>
           <label class="inline-flex items-center gap-1 mt-1 cursor-pointer" title="Subsplease/MyAnimeList">
-            <span class="text-sm font-medium text-white/50">SP</span>
+            <a href="https://subsplease.org/schedule" target="_blank"><span
+                class="text-sm underline font-medium text-white/50">SP</span></a>
             <input id="animeSource" type="checkbox" value="" class="sr-only peer">
             <div
               class="relative w-10 h-3 bg-gray-200 peer-focus:outline-none peer-focus:ring-0 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[-4px] after:start-[0px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
             </div>
-            <span class="text-sm font-medium text-white/50">MAL</span>
+            <a href="https://myanimelist.net" target="_blank"><span
+                class="text-sm underline font-medium text-white/50">MAL</span></a>
           </label>
         </div>
       </div>
@@ -54,7 +56,7 @@ ${templatePage}
           </select>
         </div>
 
-         <div id="malPicker" hidden
+        <div id="malPicker" hidden
           class="rounded-xl border focus-within:border-sky-200 px-3 py-2 duration-200 focus-within:ring focus-within:ring-sky-300/30">
           <div class="flex items-center justify-between">
             <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
@@ -73,12 +75,17 @@ ${templatePage}
               class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
           </div>
           <div class="flex sm:flex-row flex-col sm:items-center gap-2">
-            <input disabled name="page" id="customPage" style="pointer-events: none;"
+            <input disabled hidden name="page" id="customPage" style="pointer-events: none;"
               onkeypress="event.preventDefault()" placeholder="anime-page (auto)"
               class="bg-transparent border rounded-lg p-1 w-full text-white/50 text-sm outline-none border-white/20">
-            <div class="sm:ml-auto flex justify-between items-center">
+
+            <input type="url" disabled name="sourcelink" id="customSourceLink" placeholder="Quick search: https://nyaa.si/?..."
+              autocomplete="off"
+              class="bg-transparent border rounded-lg p-1 w-full text-sm outline-none border-white/20">
+
+            <div class="sm:ml-auto flex justify-between items-center gap-2">
               <select disabled name="customDay" id="customDaySelect"
-                class="border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+                class="bg-transparent p-1 border border-white/20 rounded-lg text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
                 <option value="" selected>Select a Day</option>
                 <option value="0">Sunday</option>
                 <option value="1">Monday</option>
@@ -88,9 +95,12 @@ ${templatePage}
                 <option value="5">Friday</option>
                 <option value="6">Saturday</option>
               </select>
-              <input type="time" name="customTime" id="customTimeInput" value="16:00" disabled class="bg-transparent text-sm">
+              <input type="time" name="customTime" id="customTimeInput" value="16:00" disabled
+                class="bg-transparent p-1 text-sm border border-white/20 rounded-lg">
             </div>
           </div>
+
+
         </div>
 
         <div
@@ -98,7 +108,7 @@ ${templatePage}
           <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
             Title
           </label>
-          <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer"
+          <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer..."
             autocomplete="off"
             class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
         </div>
@@ -110,7 +120,7 @@ ${templatePage}
           </label>
           <div class="flex items-center">
             <input required type="number" name="season" value="1"
-              class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground">
+              class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7">
           </div>
         </div>
 
@@ -130,7 +140,7 @@ ${templatePage}
             Summary
           </label>
           <div class="flex items-center">
-            <textarea rows="3" maxlength="700" id="animeSummary" required name="summary"
+            <textarea rows="3" maxlength="700" id="animeSummary" required name="summary" autocomplete="off"
               class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
           </div>
         </div>
@@ -171,6 +181,8 @@ ${templatePage}
     const customPageInput = document.getElementById('customPage')
     const customDayInput = document.getElementById('customDaySelect')
     const customTimeInput = document.getElementById('customTimeInput')
+    const customSourceLink = document.getElementById('customSourceLink')
+
 
     function updateTitle() {
       const selectedOption = subspleaseSelect.options[subspleaseSelect.selectedIndex];
@@ -198,6 +210,9 @@ ${templatePage}
 
         customTimeInput.required = true
         customTimeInput.disabled = false
+
+        customSourceLink.required = true
+        customSourceLink.disabled = false
       } else {
         subspleasePicker.hidden = false
         subspleaseSelect.required = true
@@ -219,6 +234,9 @@ ${templatePage}
 
         customTimeInput.required = false
         customTimeInput.disabled = true
+
+        customSourceLink.required = false
+        customSourceLink.disabled = true
       }
     })
 
@@ -242,6 +260,7 @@ ${templatePage}
         summaryInput.value = "Watch " + data.title
         imageUrl.value = getHigherQualityImageUrl(data.image)
         customPageInput.value = data.title.replace(/ /g, "-").toLowerCase()
+        customSourceLink.value = "https://nyaa.si/?f=0&c=0_0&q=" + data.title
       } else alert("Invalid MyAnimeList Url")
     }
 

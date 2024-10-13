@@ -138,7 +138,8 @@ async function processCustomSchedule(env: Env) {
         continue
       }
 
-      if (!animeData.customDay) continue
+
+      if (animeData.customDay === undefined) continue
       if (animeData.customDay !== dayOfWeek) continue
       if (animeData.timestamp == currentDate) continue; // Skip already sent items
 
@@ -171,7 +172,7 @@ function createChatPhoto(telbotChatId: string, animeData: AnimePage, timeAired: 
   const time = `➤ <b>Time: ${timeAired.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>`;
 
   const pageUrl = isCustom
-    ? `https://nyaa.si/?f=0&c=0_0&q=${encodeURIComponent(animeData.title + " " + animeData.episode)}`
+    ? `${animeData.customSourceLink} ${animeData.episode.toString().padStart(2, "0")}`
     : `https://subsplease.org/shows/${animeData.page}`;
   const pageName = isCustom ? "Nyaa" : "Subsplease";
   const page = `➤ <b>Page: <a href="${pageUrl}">${pageName} Link</a></b>`;
@@ -225,6 +226,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
     const image_url = formData.get('image_url') as string;
     const customDay = formData.get('customDay') as string;
     const customTime = formData.get('customTime') as string;
+    const customSourceLink = formData.get('sourcelink') as string;
 
     if (page && title && !isNaN(season) && !isNaN(episode) && summary) {
       const newAnime: AnimePage = {
@@ -235,6 +237,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
         summary: summary.replace(/['"`]/g, ''),
         customDay: customDay ? parseInt(customDay, 10) : undefined,
         customTime: customTime ? customTime : undefined,
+        customSourceLink: customSourceLink ? customSourceLink : undefined,
         timestamp: animeData?.timestamp || "",
         image_url
       }

@@ -9,6 +9,7 @@ export interface AnimePage {
   timestamp: string
   customDay?: number
   customTime?: string
+  customSourceLink?: string
 }
 export interface TodaySchedule {
   title: string;
