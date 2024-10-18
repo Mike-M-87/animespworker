@@ -61,5 +61,8 @@ export const templatePage = `
     cursor: pointer;
     list-style: none;
   }
+  html:has(.no-scrollbar)::-webkit-scrollbar {
+    display: none;
+  }
 </style>
 `

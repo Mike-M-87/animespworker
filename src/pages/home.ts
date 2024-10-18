@@ -4,11 +4,11 @@ export function formPage(options: string): string {
   return `
 ${templatePage}
 
-<body>
+<body class="no-scrollbar">
   <div class="maincontainer"></div>
   <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
 
-    <div class="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
+    <div class="text-foreground font-semibold text-2xl  mx-auto flex items-center gap-2">
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="w-6 h-6">
@@ -24,7 +24,7 @@ ${templatePage}
       class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
       <div class="flex flex-col">
-        <h3 class="text-xl font-semibold leading-6 tracking-tighter">Receive notifications for this anime</h3>
+        <h3 class="text-xl font-semibold">Receive notifications for this anime</h3>
 
         <div class="flex items-center gap-2 flex-wrap justify-between">
           <p class="mt-1 text-sm font-medium text-white/50">Enter the anime details below.</p>

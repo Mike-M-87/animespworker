@@ -11,7 +11,7 @@ ${templatePage}
     <div
       class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
 
-      <h3 class="text-xl mb-5 font-semibold leading-6 tracking-tighter ${isError ? 'text-red-500' : 'text-green-500'}">
+      <h3 class="text-xl mb-5 font-semibold ${isError ? 'text-red-500' : 'text-green-500'}">
         ${messageContent}
       </h3>
 
