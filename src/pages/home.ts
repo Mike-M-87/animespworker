@@ -8,7 +8,7 @@ ${templatePage}
   <div class="maincontainer"></div>
   <section class="px-3 py-10 text-white flex min-h-svh h-full w-svw flex-col justify-center items-center">
 
-    <div class="text-foreground font-semibold text-2xl  mx-auto flex items-center gap-2">
+    <div class="text-foreground font-semibold text-2xl mx-auto flex items-center gap-2">
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="w-6 h-6">
@@ -49,7 +49,7 @@ ${templatePage}
           <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
             Anime Page (Subsplease)
           </label>
-          <select required name="page" id="subspleaseSelect" onchange="updateTitle()"
+          <select required name="page" id="subspleaseSelect" onchange="updateInputs()"
             class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
             <option value="" selected>Select an Anime</option>
             ${options}
@@ -75,13 +75,9 @@ ${templatePage}
               class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
           </div>
           <div class="flex sm:flex-row flex-col sm:items-center gap-2">
-            <input disabled hidden name="page" id="customPage" style="pointer-events: none;"
+            <input disabled name="page" id="customPage" style="pointer-events: none;"
               onkeypress="event.preventDefault()" placeholder="anime-page (auto)"
               class="bg-transparent border rounded-lg p-1 w-full text-white/50 text-sm outline-none border-white/20">
-
-            <input type="url" disabled name="sourcelink" id="customSourceLink" placeholder="Quick search: https://nyaa.si/?..."
-              autocomplete="off"
-              class="bg-transparent border rounded-lg p-1 w-full text-sm outline-none border-white/20">
 
             <div class="sm:ml-auto flex justify-between items-center gap-2">
               <select disabled name="customDay" id="customDaySelect"
@@ -100,7 +96,6 @@ ${templatePage}
             </div>
           </div>
 
-
         </div>
 
         <div
@@ -109,6 +104,17 @@ ${templatePage}
             Title
           </label>
           <input maxlength="150" id="animeTitle" required type="text" name="title" placeholder="Demon Slayer..."
+            autocomplete="off"
+            class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
+        </div>
+
+
+        <div
+          class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
+          <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+            Nyaa Search
+          </label>
+          <input type="url" name="sourcelink" id="customSourceLink" required placeholder="https://nyaa.si/?..."
             autocomplete="off"
             class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
         </div>
@@ -140,7 +146,8 @@ ${templatePage}
             Summary
           </label>
           <div class="flex items-center">
-            <textarea rows="3" maxlength="700" id="animeSummary" required name="summary" autocomplete="off"
+            <textarea placeholder="This anime is about..." rows="3" maxlength="700" id="animeSummary" required
+              name="summary" autocomplete="off"
               class="block w-full border-0 bg-transparent py-1 text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"></textarea>
           </div>
         </div>
@@ -184,11 +191,12 @@ ${templatePage}
     const customSourceLink = document.getElementById('customSourceLink')
 
 
-    function updateTitle() {
+    function updateInputs() {
       const selectedOption = subspleaseSelect.options[subspleaseSelect.selectedIndex];
       const selectedTitle = selectedOption?.value ? selectedOption.text.split(" (")?.[0] : ""
       titleInput.value = selectedTitle
       summaryInput.value = selectedTitle ? ("Watch " + selectedTitle) : ""
+      customSourceLink.value = "https://nyaa.si/?f=0&c=0_0&q=[Judas]+" + selectedTitle.replace(/ /g, "+").toLowerCase()
     }
 
     document.getElementById('animeSource').addEventListener('change', function () {
@@ -210,9 +218,6 @@ ${templatePage}
 
         customTimeInput.required = true
         customTimeInput.disabled = false
-
-        customSourceLink.required = true
-        customSourceLink.disabled = false
       } else {
         subspleasePicker.hidden = false
         subspleaseSelect.required = true
@@ -234,9 +239,6 @@ ${templatePage}
 
         customTimeInput.required = false
         customTimeInput.disabled = true
-
-        customSourceLink.required = false
-        customSourceLink.disabled = true
       }
     })
 
@@ -260,7 +262,7 @@ ${templatePage}
         summaryInput.value = "Watch " + data.title
         imageUrl.value = getHigherQualityImageUrl(data.image)
         customPageInput.value = data.title.replace(/ /g, "-").toLowerCase()
-        customSourceLink.value = "https://nyaa.si/?f=0&c=0_0&q=" + data.title
+        customSourceLink.value = "https://nyaa.si/?f=0&c=0_0&q=[Judas]+" + data.title.replace(/ /g, "+").toLowerCase()
       } else alert("Invalid MyAnimeList Url")
     }
 
@@ -274,6 +276,5 @@ ${templatePage}
   </script>
 </body>
 
-</html>
-`;
+</html>`;
 }

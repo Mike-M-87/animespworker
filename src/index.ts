@@ -171,10 +171,8 @@ function createChatPhoto(telbotChatId: string, animeData: AnimePage, timeAired: 
   const episode = `➤ <b>Episode: ${(animeData.episode + 1).toString().padStart(2, "0")}</b>`;
   const time = `➤ <b>Time: ${timeAired.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: "Africa/Nairobi" })}</b>`;
 
-  const pageUrl = isCustom ? animeData.customSourceLink : `https://subsplease.org/shows/${animeData.page}`;
-  const pageName = isCustom ? "Nyaa" : "Subsplease";
-  const page = `➤ <b>Page: <a href="${pageUrl}">${pageName} Link</a></b>`;
-
+  const subspleasePage = `➤ <b>Page: <a href="https://subsplease.org/shows/${animeData.page}">Subsplease Link</a></b>`;
+  const nyaaPage = `➤ <b>Page (mini): <a href="${animeData.customSourceLink}">Nyaa Link</a></b>`;
   const summary = `<blockquote expandable><i>${animeData.summary}</i></blockquote>`;
 
   const caption = [
@@ -182,8 +180,8 @@ function createChatPhoto(telbotChatId: string, animeData: AnimePage, timeAired: 
     separator,
     season,
     episode,
-    time,
-    page,
+    isCustom ? time : subspleasePage,
+    nyaaPage,
     separator,
     summary
   ].join('\n');
@@ -235,7 +233,7 @@ async function handlePostRequestPage(request: Request, env: Env): Promise<Respon
         summary: summary.replace(/['"`]/g, ''),
         customDay: customDay ? parseInt(customDay, 10) : undefined,
         customTime: customTime ? customTime : undefined,
-        customSourceLink: customSourceLink ? customSourceLink : undefined,
+        customSourceLink: customSourceLink,
         timestamp: animeData?.timestamp || "",
         image_url
       }
