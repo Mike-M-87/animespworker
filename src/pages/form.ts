@@ -32,7 +32,7 @@ export function renderFavItem(anime: AnimePage): string {
     <div
       class="rounded-xl border focus-within:border-sky-200 px-3 py-1.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
       <label class="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
-        Title
+        Nyaa Link
       </label>
       <input type="url" name="sourcelink" value="${anime?.customSourceLink}"
         placeholder="Quick search: https://nyaa.si/?..." autocomplete="off"
