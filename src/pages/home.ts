@@ -75,11 +75,11 @@ ${templatePage}
               class="block w-full border-0 bg-transparent py-1 text-sm  placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
           </div>
           <div class="flex sm:flex-row flex-col sm:items-center gap-2">
-            <input disabled name="page" id="customPage" style="pointer-events: none;"
+            <input hidden disabled name="page" id="customPage" style="pointer-events: none;"
               onkeypress="event.preventDefault()" placeholder="anime-page (auto)"
               class="bg-transparent border rounded-lg p-1 w-full text-white/50 text-sm outline-none border-white/20">
 
-            <div class="sm:ml-auto flex justify-between items-center gap-2">
+            <div class="flex justify-between items-center gap-2">
               <select disabled name="customDay" id="customDaySelect"
                 class="bg-transparent p-1 border border-white/20 rounded-lg text-sm placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground">
                 <option value="" selected>Select a Day</option>
