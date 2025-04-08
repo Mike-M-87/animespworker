@@ -3,7 +3,7 @@ import { AnimePage } from "../types";
 
 export function renderFavItem(anime: AnimePage): string {
   return ` 
-<details class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl">
+<details class="hover:bg-black/20 border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-xl overflow-scroll">
   <summary class="flex items-center gap-2 p-3">
     <span class="-mt-px">${anime.title}</span>
     <div class="ml-auto">
