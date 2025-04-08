@@ -19,7 +19,7 @@ ${templatePage}
     </div>
 
     <div
-      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl">
+      class="w-full max-w-3xl py-7 px-5 sm:p-10 mt-5 bg-black bg-opacity-60 backdrop-blur-md border shadow-[5px_0_5px_5px] shadow-white/10 border-white/40 rounded-2xl overflow-y-auto">
 
       <div class="flex flex-col">
         <h3 class="text-xl font-semibold">
@@ -30,7 +30,7 @@ ${templatePage}
         </p>
       </div>
 
-      <div class="flex mt-5 flex-col gap-4 sm:max-h-[67vh] max-h-[66vh] overflow-y-auto">
+      <div class="flex mt-5 flex-col gap-4 sm:max-h-[67vh] max-h-[66vh]">
         ${favs}
       </div>
     </div>
