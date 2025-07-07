@@ -255,8 +255,11 @@ ${templatePage}
         alert("Invalid MyAnimeList Url");
         return
       }
-      const response = await fetch("https://api.malsync.moe/mal/anime/" + animeId)
-      const data = await response.json()
+      const apiUrl = "https://api.malsync.moe/mal/anime/" + animeId;
+      const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
+      const response = await fetch(proxyUrl);
+      const proxyData = await response.json();
+      const data = JSON.parse(proxyData.contents);
       if (data.id) {
         titleInput.value = data.title
         summaryInput.value = "Watch " + data.title
