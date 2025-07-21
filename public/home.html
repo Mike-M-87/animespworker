@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,viewport-fit=cover">
 
   <title>Jin Woo Worker</title>
   <meta property="og:title" content="Jin Woo Worker" />
@@ -31,7 +31,7 @@
 
   <meta name="display" content="standalone">
   <link rel="manifest" crossorigin="use-credentials"
-    href="https://gist.githubusercontent.com/Mike-M-87/c4bb8d50dd4c5181aebd69978d594fb4/raw/4fe12844f9f252e14a7eebe159bdf9222c45c9c7/manifest1.json" />
+    href="https://gist.githubusercontent.com/Mike-M-87/c4bb8d50dd4c5181aebd69978d594fb4/raw/deaa0dc3e3018a0f577a3df3137332ee9762ea91/manifest1.json" />
 
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -68,6 +68,11 @@
 </style>
 
 
+<script>
+  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
+    document.body.style.paddingTop = '2.5rem';
+  }
+</script>
 
 
 <body class="no-scrollbar">
