@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,viewport-fit=cover">
 
   <title>Jin Woo Worker</title>
   <meta property="og:title" content="Jin Woo Worker" />
@@ -38,6 +38,10 @@
 
 
 <style>
+  body {
+    height: 100vh;
+  }
+
   .maincontainer {
     background-image: url("https://r4.wallpaperflare.com/wallpaper/683/96/3/solo-leveling-sung-jin-woo-manga-anime-boys-hd-wallpaper-333b13cd2dc9fbf52f06e2e7d83be858.jpg");
     background-position: center;
@@ -60,6 +64,12 @@
   summary {
     cursor: pointer;
     list-style: none;
+  }
+
+  @media screen and (max-width: 768px) {
+    body {
+      padding-top: 2.5rem;
+    }
   }
 </style>
 
