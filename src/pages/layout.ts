@@ -64,11 +64,10 @@ export const templatePage = `
   html:has(.no-scrollbar)::-webkit-scrollbar {
     display: none;
   }
-</style>
-
-<script>
-  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
-    document.body.style.paddingTop = '2.5rem';
+  @media screen and (max-width: 768px) {
+    body {
+      padding-top: 2.5rem;
+    }
   }
-</script>
+</style>
 `
