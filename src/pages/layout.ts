@@ -41,7 +41,7 @@ export const templatePage = `
 
 <style>
   body {
-    height: 100vh;
+    min-height: 100vh;
   }
   .maincontainer {
     background-image: url("https://r4.wallpaperflare.com/wallpaper/683/96/3/solo-leveling-sung-jin-woo-manga-anime-boys-hd-wallpaper-333b13cd2dc9fbf52f06e2e7d83be858.jpg");
